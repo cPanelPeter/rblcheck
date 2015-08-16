@@ -1,0 +1,116 @@
+#!/usr/bin/perl
+# SCRIPT: rblcheck
+# AUTHOR: Peter Elsner <peter.elsner@cpanel.net>
+# PURPOSE: Check an IP address against various RBL's (Realtime Blackhole Lists)
+# CREATED 8/9/2015
+#
+use strict;
+my $version = "1.0";
+use File::stat;
+use Getopt::Long;
+use Term::ANSIColor qw(:constants);
+$Term::ANSIColor::AUTORESET = 1;
+$| = 1;
+my @RBLS = qw( 
+	cbl.abuseat.org 
+	bl.spamcop.net 
+	zen.spamhaus.org 
+	ips.barracudacentral.org 
+	b.barracudacentral.org
+	list.dsbl.org 
+	combined.abuse.ch
+	dnsbl.mailshell.net
+	dnsrbl.swinog.ch
+	bogons.cymru.com
+	bl.deadbeef.com
+	ixhash.junkemailfilter.com
+	rbl.orbitrbl.com
+	rbl.softworking.com
+	dyna.spamrats.com
+	noptr.spamrats.com
+	cbl.anti-spam.org.cn
+	cdl.anti-spam.org.cn
+	spam.spamrats.com
+	psbl.surriel.com
+	rbl.spamlab.com
+	bl.tiopan.com
+	ubl.unsubscore.com
+	dialups.visi.com
+	bl.blocklist.de
+	dnsbl.inps.de
+	relays.bl.kundenserver.de
+	no-more-funn.moensted.dk
+	dev.null.dk
+	bl.technovision.dk
+	st.technovision.dk
+	spamsources.fabel.dk
+	db.wpbl.info
+	all.rbl.jp
+	dyndns.rbl.jp
+	rbl.atlbl.net
+	hbl.atlbl.net
+	dnsbl.cyberlogic.net
+	intercept.datapacket.net
+	spamtrap.drbl.drand.net
+	truncate.gbudb.net
+	blackholes.intersil.net
+	generic.ixhash.net
+	hosteurope.ixhash.net
+	dnsbl.kempt.net
+	bl.mailspike.net
+	ix.dnsbl.manitu.net
+	combined.rbl.msrbl.net
+	korea.services.net
+	dnsbl.sorbs.net
+	spam.dnsbl.sorbs.net
+	backscatter.spameatingmonkey.net
+	badnets.spameatingmonkey.net
+	bl.spameatingmonkey.net
+	ixhash.spameatingmonkey.net
+	netbl.spameatingmonkey.net
+	dnsbl.httpbl.org
+	torexit.dan.me.uk
+	dnsbl-1.uceprotect.net
+	dnsbl-2.uceprotect.net
+	dnsbl-3.uceprotect.net
+	multi.uribl.com
+	multi.surbl.org
+	virbl.dnsbl.bit.nl
+	mail-abuse.blacklist.jippg.org
+	dnsbl.dronebl.org
+	any.dnsl.ipquery.org
+	blackholes.mail-abuse.org
+	combined.njabl.org
+	dnsbl.proxybl.org
+	access.redhawk.org
+	dsn.rfc-ignorant.org
+	fulldom.rfc-ignorant.org
+	bl.spamcannibal.org
+);
+
+my $TOTRBLS=@RBLS;
+my $ENTEREDIP=@ARGV[0];
+chomp($ENTEREDIP);
+my ($Q1,$Q2,$Q3,$Q4)=(split(/\./,$ENTEREDIP));
+my $revaddr="$Q4.$Q3.$Q2.$Q1";
+my $NUMLISTED=0;
+my @LISTED;
+my $RBL;
+foreach $RBL(@RBLS) { 
+	chomp($RBL);
+	my $LOOKUP="$revaddr.$RBL";
+	my $RESULT=qx[ dig \@208.67.222.222 +short $LOOKUP A ];
+	print "Checking List: " . YELLOW . $RBL . WHITE . ": $ENTEREDIP is ";
+	if ($RESULT) { 
+		print RED "[LISTED]\n";
+		$NUMLISTED++;
+		push(@LISTED,$RBL);
+	}
+	else { 
+		print GREEN "[NOT LISTED]\n";
+	}
+}
+
+print "\n";
+print "Checked $TOTRBLS Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+
