@@ -5,11 +5,10 @@
 # CREATED 8/9/2015
 #
 use strict;
-my $version = "1.0";
+my $version = "1.0.01";
+&module_sanity_check;
 use File::stat;
-use Net::IP;
 use Socket;
-use Net::Blacklist::Client;
 use Getopt::Long;
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
@@ -321,3 +320,17 @@ sub help {
 	print "Usage information goes here!\n";
 	exit;
 }
+
+sub module_sanity_check {
+   eval("use Net::IP;");
+   if ($@) {
+      print "WARNING: Perl Module Net::IP.pm not installed!\n";
+      print "Installing now - Please stand by.\n";
+      system("/usr/local/cpanel/bin/cpanm --force Net::IP");
+   }
+   else {
+      print "Module Net::IP.pm already installed!\n";
+   }
+   return;
+}
+
