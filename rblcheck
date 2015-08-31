@@ -317,7 +317,14 @@ sub checkit() {
 exit;
 
 sub help { 
-	print "Usage information goes here!\n";
+	print "rblcheck\n\n";
+   print "   --main checks the main IP address (/var/cpanel/mainip).\n";
+   print "   --allips checks all IP addresses on the server.\n";
+   print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
+   print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server\n";
+   print "   --email sends email to root user (not yet implemented)\n";
+   print "   --summary prints a summary of what was found (not yet implemented)\n";
+   print "   --help (you're looking at it!\n";
 	exit;
 }
 
@@ -327,9 +334,6 @@ sub module_sanity_check {
       print "WARNING: Perl Module Net::IP.pm not installed!\n";
       print "Installing now - Please stand by.\n";
       system("/usr/local/cpanel/bin/cpanm --force Net::IP");
-   }
-   else {
-      print "Module Net::IP.pm already installed!\n";
    }
    return;
 }
