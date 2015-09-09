@@ -5,8 +5,8 @@
 # CREATED 8/9/2015
 #
 use strict;
-my $version = "1.0.01";
-&module_sanity_check;
+my $version = "1.0.02";
+#&module_sanity_check;
 use File::stat;
 use Socket;
 use Getopt::Long;
@@ -211,7 +211,7 @@ my $email;
 my $checkip; 
 my $listedonly;
 my $help;
-my $enteredip;
+my $ENTEREDIP;
 my $mainip;
 my $ipaddrline;
 my $ipaddr;
@@ -268,56 +268,56 @@ if ($allips) {
 	}
 }
 
-if ($help) { 
+if ($help or @ARGV[0] eq "") { 
 	&help;
 }
 
 sub checkit() { 
-	$enteredip=$_[0];
+	$ENTEREDIP=$_[0];
 	my $NUMLISTED=0;
-	my $lookuphost;
-	if ( $enteredip =~ /:/ and $enteredip !~ /\./ ) {
-		my $expandedip = new Net::IP ( $enteredip );
-		$lookuphost = join '.', reverse ( split '', $expandedip->ip() );
-		$lookuphost =~ s/\.:\././g;
+	my $LOOKUPHOST;
+	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
+		my $EXPANDEDIP = new Net::IP ( $ENTEREDIP );
+		$LOOKUPHOST = join '.', reverse ( split '', $EXPANDEDIP->ip() );
+		$LOOKUPHOST =~ s/\.:\././g;
 	} 
-	elsif ( $enteredip =~ /\./ and $enteredip !~ /:/ ) {
-		$lookuphost = join '.', reverse ( split /\./, $enteredip );
+	elsif ( $ENTEREDIP =~ /\./ and $ENTEREDIP !~ /:/ ) {
+		$LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
 	} 
 	else {
-		die "FATAL - invalid host \"$enteredip\"\n";
+		die "FATAL - invalid host \"$ENTEREDIP\"\n";
 	}
-	foreach my $blacklist (@RBLS) {
+	foreach my $BLACKLIST (@RBLS) {
 		if ($listedonly) {
 			print ".";
 		}
-		print "Checking List: " . YELLOW . $blacklist . WHITE . ": $enteredip is " unless($listedonly);
-		my $lookup = "$lookuphost.$blacklist";
-		my $result = gethostbyname ( $lookup );
-		if ( ! defined $result ) { 
+		print "Checking List: " . YELLOW . $BLACKLIST . WHITE . ": $ENTEREDIP is " unless($listedonly);
+		my $lookup = "$LOOKUPHOST.$BLACKLIST";
+		my $RESULT = gethostbyname ( $lookup );
+		if ( ! defined $RESULT ) { 
 			print GREEN "[NOT LISTED]\n" unless($listedonly);
 		}
 		else { 
-			$result = inet_ntoa ( $result );
+			$RESULT = inet_ntoa ( $RESULT );
 			if ($listedonly) { 
-				print "\n\nList: " . YELLOW . $blacklist . WHITE . ": $enteredip is ";
-				print RED "[LISTED] ($result)\n\n";
+				print "\n\nList: " . YELLOW . $BLACKLIST . WHITE . ": $ENTEREDIP is ";
+				print RED "[LISTED] ($RESULT)\n\n";
 			}
 			else { 
-				print RED "[LISTED] ($result)\n";
+				print RED "[LISTED] ($RESULT)\n";
 			}
 			$NUMLISTED++;
 		}
 	}
 
 	print "\n";
-	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $enteredip listed in $NUMLISTED of them.\n";
+	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
 }
 
 exit;
 
 sub help { 
-	print "rblcheck\n\n";
+	print "rblcheck [currently checking against $totrbls Realtime Blackhole Lists (RBL's)]\n\n";
    print "   --main checks the main IP address (/var/cpanel/mainip).\n";
    print "   --allips checks all IP addresses on the server.\n";
    print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
