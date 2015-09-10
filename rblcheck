@@ -5,7 +5,7 @@
 # CREATED 8/9/2015
 #
 use strict;
-my $version = "1.0.03";
+my $version = "1.0.04";
 &module_sanity_check;
 use File::stat;
 use Socket;
@@ -289,6 +289,7 @@ my $ipaddr;
 my @ALIASES;
 my @ALL;
 my $tocheck;
+my $TXT;
 
 GetOptions(
 	'mainip' => \$mainip,
@@ -373,12 +374,17 @@ sub checkit() {
 		}
 		else { 
 			$RESULT = inet_ntoa ( $RESULT );
+         $TXT = qx[ dig $lookup TXT +short ];
+         chomp($TXT);
 			if ($listedonly) { 
-				print "\n\nList: " . YELLOW . $BLACKLIST . WHITE . ": $ENTEREDIP is ";
-				print RED "[LISTED] ($RESULT)\n\n";
+				print "List: " . YELLOW . $BLACKLIST . WHITE . ": $ENTEREDIP is ";
+				print RED "[LISTED] ($RESULT)\n";
 			}
 			else { 
 				print RED "[LISTED] ($RESULT)\n";
+            if ($TXT) { 
+               print "Reason: $TXT\n";
+            }
 			}
 			$NUMLISTED++;
 		}
