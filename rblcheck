@@ -338,7 +338,7 @@ if ($allips) {
 	}
 }
 
-if ($help or if($checkip AND @ARGV[0] eq "")) { 
+if ($help or ($checkip and @ARGV[0] eq "")) { 
 	&help;
 }
 
