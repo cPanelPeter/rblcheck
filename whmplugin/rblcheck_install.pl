@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+# There are better ways of doing this, but I have kept it as simple as possible so that
+# you can easily understand the process.
 
 system("clear");
 print "Installing the RBLCheck WHM Plugin...\n";
@@ -7,22 +9,24 @@ print "Installing the RBLCheck WHM Plugin...\n";
 &module_sanity_check;
 
 # Create the directory for the plugin
-mkdir(0755, "/usr/local/cpanel/whostmgr/docroot/cgi/rblcheck");
+system( "mkdir /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck" );
 
 # Obtain the plugin from Github
-system( "curl -o /root/rblcheck.tar.gz https://github.com/cPanelPeter/rblcheck/blob/master/whmplugin/rblcheck.tar.gz" );
-
-# Extract the tarball
-system( "tar xvzf rblcheck.tar.gz" );
+system( "curl https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.cgi > /root/rblcheck.cgi" );
+system( "curl https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.jpg > /root/rblcheck.jpg" );
+system( "curl https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.conf > /root/rblcheck.conf" );
 
 # Copy the rblcheck.jpg (Icon) image file to /usr/local/cpanel/whostmgr/docroot/addon_plugins
-system( "cp -fv /root/rblcheck/rblcheck.jpg /usr/local/cpanel/whostmgr/docroot/addon_plugins" );
+system( "cp -fv /root/rblcheck.jpg /usr/local/cpanel/whostmgr/docroot/addon_plugins" );
 
 # Copy the rblcheck.cgi file to /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck
-system( "cp -fv /root/rblcheck/rblcheck.cgi /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck" );
+system( "cp -fv /root/rblcheck.cgi /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck" );
+
+# Set execute permissions on the script
+system( "chmod 0755 /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck/rblcheck.cgi" );
 
 # Register the plugin
-system( "/usr/local/cpanel/bin/register_appconfig /root/rblcheck/rblcheck.conf" );
+system( "/usr/local/cpanel/bin/register_appconfig /root/rblcheck.conf" );
 
 print "\nRBLCheck WHM Plugin installed!\n";
 exit;
@@ -30,7 +34,7 @@ exit;
 # sub routines
 sub module_sanity_check {
    @modules_to_install = qw( Net::IP Geo::IP );
-   foreach $module(@modules_to_install) { 
+   foreach $module(@modules_to_install) {
       chomp($module);
       eval("use $module;");
       if ($@) {
