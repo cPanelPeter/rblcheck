@@ -12,76 +12,6 @@ use CGI qw(:standard);
 $| = 1;
 
 my $version = "1.0.05";
-
-# Check for NAT configuration
-my $HASNAT=0;
-$HASNAT=&check_for_nat();
-
-# Get mainip 
-open(MAINIP,"/var/cpanel/mainip");
-my $mainip = <MAINIP>;
-close(MAINIP);
-
-if ($HASNAT) { 
-	$mainip=&replace_mainIP($mainip);
-}
-
-# Get GEO IP data for $mainip
-&getGeoData($mainip);
-print "Country: $country_name ($country_code/$country_code3)<br>\n";
-print "Region: $region - City: $city - Postal Code: $postal_code<br>\n";
-print "Latitude: $latitude / Longitude: $longitude<br>\n";
-
-# Check for additional IP's in /etc/ips file
-my $IPALIASLINE;
-my $IPALIAS;
-open(ALIASES,"/etc/ips");
-my @ALIASES=<ALIASES>;
-my @NEWALIASES=undef;
-close(ALIASES);
-foreach $IPALIASLINE(@ALIASES) { 
-	chomp($IPALIASLINE);
-	($IPALIAS)=(split(/:/,$IPALIASLINE))[0];
-	if ($HASNAT) { 
-		$IPALIAS=&replace_with_natip($IPALIAS);
-	}
-	push(@NEWALIASES, "<form action='rblcheck.cgi'>\n");
-	push(@NEWALIASES, "<li>$IPALIAS <input type='hidden' name='ipaddr' value='$IPALIAS'><input type='submit' value='Check'></li>\n");
-	push(@NEWALIASES, "</form>");
-}
-
-my $enteredipaddr = param('ipaddr');
-if ($enteredipaddr) { 
-	print "Content-Type: text/html; charset=iso-8859-1\n\n";
-	print "Checking $enteredipaddr...<p>\n";
-}
-else { 
-	print <<END;
-Content-Type: text/html; charset=iso-8859-1
-
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>RBL Check</title>
-	</head>
-	<body>
-	RBL Check...<p>
-	<form action="rblcheck.cgi">
-	The servers main ip is: $mainip <input type="hidden" name="ipaddr" value="$mainip"><input type="submit" value="Check"><br>
-	</form>
-	These are the additional IP's (aliases): 
-	<p>
-	<ul>
-	@NEWALIASES
-	</ul>
-	<p>
-	<form action="rblcheck.cgi">
-	<div>Enter an IP Address to check: <input name="ipaddr" size="20"></div>
-	<div><input type="submit" value=" Check "></div>
-	</form>
-END
-}
-
 my @RBLS = qw( 
    0spam.fusionzero.com
    0spam-killlist.fusionzero.com
@@ -138,7 +68,6 @@ my @RBLS = qw(
    cdl.anti-spam.org.cn
    cidr.bl.mcafee.com
    combined.rbl.msrbl.net
-   dbl.spamhaus.org
    dbl.tiopan.com
    db.wpbl.info
    dnsbl-0.uceprotect.net
@@ -347,16 +276,94 @@ my $totrbls=@RBLS;
 my $ENTEREDIP;
 my $TXT;
 
-&checkit($enteredipaddr);
+# Check for NAT configuration
+my $HASNAT=0;
+$HASNAT=&check_for_nat();
 
-print <<END;
+# Get mainip 
+open(MAINIP,"/var/cpanel/mainip");
+my $mainip = <MAINIP>;
+close(MAINIP);
+
+if ($HASNAT) { 
+	$mainip=&replace_mainIP($mainip);
+}
+
+my ($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude)="";
+
+# Check for additional IP's in /etc/ips file
+my $IPALIASLINE;
+my $IPALIAS;
+open(ALIASES,"/etc/ips");
+my @ALIASES=<ALIASES>;
+my @NEWALIASES=undef;
+close(ALIASES);
+foreach $IPALIASLINE(@ALIASES) { 
+	chomp($IPALIASLINE);
+	($IPALIAS)=(split(/:/,$IPALIASLINE))[0];
+	if ($HASNAT) { 
+		$IPALIAS=&replace_with_natip($IPALIAS);
+	}
+	push(@NEWALIASES, "<form action='rblcheck.cgi'>\n");
+	push(@NEWALIASES, "<li>$IPALIAS <input type='hidden' name='ipaddr' value='$IPALIAS'><input type='submit' value='Check'></li>\n");
+	push(@NEWALIASES, "</form>");
+}
+
+my $aliascnt=@NEWALIASES;
+
+my $enteredipaddr = param('ipaddr');
+if ($enteredipaddr) { 
+	# Get GEO IP data for $mainip
+	my $gi = Geo::IP::PurePerl->new("/usr/local/share/GeoIP/GeoLiteCity.dat", GEOIP_STANDARD);
+	($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude) = $gi->get_city_record($enteredipaddr);
+	print "Content-Type: text/html; charset=iso-8859-1\n\n";
+	print "Checking $enteredipaddr...<br>\n";
+	if ($country_name) { 
+		print "Country: $country_name ( $country_code / $country_code3 )<br>\n";
+		print "Region: $region / City: $city / Postal Code: $postal_code<br>\n";
+		print "Latitude: $latitude / Longitude: $longitude<br>\n";
+	}
+	print "<hr>\n";
+	&checkit($enteredipaddr);
+	print <<END;
 <p>
-Note: if you are using a public DNS resolver (such as Google or OpenDNS) then your IP address
-will show as being listed in uribl.com lists because they block anyone using a public DNS
+Note: if you are using a public DNS resolver (such as Google or OpenDNS) then your IP address<br>
+will show as being listed in uribl.com lists because they block anyone using a public DNS<br>
 resolver.  It does not mean your IP address is actually blacklisted.  
 <p>
 
+<a href="rblcheck.cgi">Return</a>
+
 END
+}
+else { 
+	print <<END;
+Content-Type: text/html; charset=iso-8859-1
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>RBL Check ($aliascnt)</title>
+	</head>
+	<body>
+	RBL Check...<p>
+	<form action="rblcheck.cgi">
+	The servers main ip is: $mainip <input type="hidden" name="ipaddr" value="$mainip"><input type="submit" value="Check"><br>
+	</form>
+
+	These are the additional IP's (aliases): 
+	<p>
+	<ul>
+	@NEWALIASES
+	</ul>
+	<p>
+	<form action="rblcheck.cgi">
+	<div>Enter an IP Address to check: <input name="ipaddr" size="20"></div>
+	<div><input type="submit" value=" Check "></div>
+	</form>
+END
+}
+
 # RETURN TO MAIN MENU
 exit;
 
@@ -379,7 +386,8 @@ sub checkit() {
 		die "FATAL - invalid host \"$ENTEREDIP\"\n";
 	}
 	foreach my $BLACKLIST (@RBLS) {
-		print "List: ". $BLACKLIST . ": $ENTEREDIP is ";
+		#print "List: ". $BLACKLIST . ": $ENTEREDIP is ";
+		print $BLACKLIST . ": ";
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
 		my $RESULT = gethostbyname ( $lookup );
 		if ( ! defined $RESULT ) { 
@@ -387,8 +395,8 @@ sub checkit() {
 		}
 		else { 
 			$RESULT = inet_ntoa ( $RESULT );
-         $TXT = qx[ dig $lookup TXT +short ];
-         chomp($TXT);
+			$TXT = qx[ dig $lookup TXT +short ];
+			chomp($TXT);
 			print "<font color=\"RED\">[LISTED]</font> ($RESULT)<BR>\n";
             if ($TXT) { 
                print "<font color=\"BLUE\">Reason: $TXT</font><BR>\n";
@@ -398,17 +406,6 @@ sub checkit() {
 	}
 	print "<p>\n";
 	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
-}
-
-
-sub module_sanity_check {
-   eval("use Net::IP;");
-   if ($@) {
-      print "WARNING: Perl Module Net::IP.pm not installed!\n";
-      print "Installing now - Please stand by.\n";
-      system("/usr/local/cpanel/bin/cpanm --force Net::IP");
-   }
-   return;
 }
 
 sub check_for_nat() { 
@@ -458,7 +455,5 @@ sub replace_mainIP {
 
 sub getGeoData {
    my $ip2chk=$_[0];
-   my $gi = Geo::IP::PurePerl->new("/usr/local/share/GeoIP/GeoLiteCity.dat", GEOIP_STANDARD);
-   my ($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude) = $gi->get_city_record($ip2chk);
    return;   
 }
