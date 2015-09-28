@@ -5,14 +5,25 @@
 # CREATED 8/9/2015
 #
 use strict;
-my $version = "1.0.04";
+my $version = "1.0.05";
 &module_sanity_check;
-use File::stat;
 use Socket;
 use Getopt::Long;
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
+
+# Check for NAT configuration
+my $HASNAT=0;
+$HASNAT=&check_for_nat();
+# Get mainip 
+open(MAINIP,"/var/cpanel/mainip");
+my $mainip = <MAINIP>;
+close(MAINIP);
+
+if ($HASNAT) {
+	$mainip=&replace_mainIP($mainip);
+}
 
 my @RBLS = qw( 
    0spam.fusionzero.com
@@ -300,7 +311,6 @@ GetOptions(
 	'help' => \$help,
 );
 
-
 if ($mainip) { 
 	open(MAINIP,"/var/cpanel/mainip");
 	$tocheck = <MAINIP>;
@@ -365,7 +375,7 @@ sub checkit() {
 		if ($listedonly) {
 #			print ".";
 		}
-		print "List: " . YELLOW . $BLACKLIST . WHITE . ": $ENTEREDIP is " unless($listedonly);
+		print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
 		my $RESULT = gethostbyname ( $lookup );
 		if ( ! defined $RESULT ) { 
@@ -377,7 +387,7 @@ sub checkit() {
          $TXT = qx[ dig $lookup TXT +short ];
          chomp($TXT);
 			if ($listedonly) { 
-				print "List: " . YELLOW . $BLACKLIST . WHITE . ": $ENTEREDIP is ";
+				print YELLOW . $BLACKLIST . WHITE . ": ";
 				print RED "[LISTED] ($RESULT)\n";
 			}
 			else { 
@@ -398,13 +408,13 @@ exit;
 
 sub help { 
 	print "rblcheck [currently checking against $totrbls Realtime Blackhole Lists (RBL's)]\n\n";
-   print "   --main checks the main IP address (/var/cpanel/mainip).\n";
-   print "   --allips checks all IP addresses on the server.\n";
-   print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
-   print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server\n";
-   print "   --email sends email to root user (not yet implemented)\n";
-   print "   --summary prints a summary of what was found (not yet implemented)\n";
-   print "   --help (you're looking at it!\n";
+	print "   --main checks the main IP address (/var/cpanel/mainip).\n";
+	print "   --allips checks all IP addresses on the server.\n";
+	print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
+	print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server\n";
+	print "   --email sends email to root user (not yet implemented)\n";
+	print "   --summary prints a summary of what was found (not yet implemented)\n";
+	print "   --help (you're looking at it!)\n";
 	exit;
 }
 
@@ -418,3 +428,47 @@ sub module_sanity_check {
    return;
 }
 
+sub check_for_nat() {
+	return if (!(-e("/var/cpanel/cpnat")));
+	my $NATFOUND=0;
+	$NATFOUND=1;
+	return $NATFOUND;;
+}
+
+sub replace_with_natip {
+	my $privateIP=$_[0];
+	my $outsideIP;
+	my $insideIP;
+	open(CPNAT,"/var/cpanel/cpnat");
+	my @CPNAT=<CPNAT>;
+	close(CPNAT);
+	my $cpnat;
+	foreach $cpnat(@CPNAT) {
+		chomp($cpnat);
+		($outsideIP,$insideIP)=(split(/\s+/,$cpnat));
+		chomp($outsideIP);
+		chomp($insideIP);
+		if ($insideIP eq $privateIP) { 
+			return $outsideIP; 
+		}
+	}
+}
+
+sub replace_mainIP {
+	my $privateIP=$_[0];
+	my $outsideIP;
+	my $insideIP;
+	open(CPNAT,"/var/cpanel/cpnat");
+	my @CPNAT=<CPNAT>;
+	close(CPNAT);
+	my $cpnat;
+	foreach $cpnat(@CPNAT) {
+		chomp($cpnat);
+		($outsideIP,$insideIP)=(split(/\s+/,$cpnat));
+		chomp($outsideIP);
+		chomp($insideIP);
+		if ($outsideIP eq $privateIP) {
+			return $outsideIP;
+		}
+	}
+}
