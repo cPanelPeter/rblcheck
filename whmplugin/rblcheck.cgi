@@ -6,7 +6,7 @@
 #
 
 use strict;
-#use File::stat;
+use Geo::IP::PurePerl;
 use Socket;
 use CGI qw(:standard);
 $| = 1;
@@ -25,6 +25,12 @@ close(MAINIP);
 if ($HASNAT) { 
 	$mainip=&replace_mainIP($mainip);
 }
+
+# Get GEO IP data for $mainip
+&getGeoData($mainip);
+print "Country: $country_name ($country_code/$country_code3)<br>\n";
+print "Region: $region - City: $city - Postal Code: $postal_code<br>\n";
+print "Latitude: $latitude / Longitude: $longitude<br>\n";
 
 # Check for additional IP's in /etc/ips file
 my $IPALIASLINE;
@@ -448,4 +454,11 @@ sub replace_mainIP {
 			return $outsideIP;
 		}
 	}
+}
+
+sub getGeoData {
+   my $ip2chk=$_[0];
+   my $gi = Geo::IP::PurePerl->new("/usr/local/share/GeoIP/GeoLiteCity.dat", GEOIP_STANDARD);
+   my ($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude) = $gi->get_city_record($ip2chk);
+   return;   
 }

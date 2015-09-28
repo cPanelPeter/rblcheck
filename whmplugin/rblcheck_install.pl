@@ -9,7 +9,7 @@ print "Installing the RBLCheck WHM Plugin...\n";
 &module_sanity_check;
 
 # Create the directory for the plugin
-system( "mkdir /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck" );
+system( "mkdir -p /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck" );
 
 # Obtain the plugin from Github
 system( "curl https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.cgi > /root/rblcheck.cgi" );
@@ -22,8 +22,13 @@ system( "cp -fv /root/rblcheck.jpg /usr/local/cpanel/whostmgr/docroot/addon_plug
 # Copy the rblcheck.cgi file to /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck
 system( "cp -fv /root/rblcheck.cgi /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck" );
 
-# Set execute permissions on the script
+# Set execute permissions on the rblcheck.cgi script
 system( "chmod 0755 /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck/rblcheck.cgi" );
+
+# Download the GeoLiteCity.dat file to /usr/local/share/GeoIP
+system( "mkdir -p /usr/local/share/GeoIP" );
+system( "curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz > /usr/local/share/GeoIP/GeoLiteCity.dat.gz" );
+system( "/bin/gunzip /usr/local/share/GeoIP/GeoLiteCity.dat.gz");
 
 # Register the plugin
 system( "/usr/local/cpanel/bin/register_appconfig /root/rblcheck.conf" );
@@ -33,7 +38,7 @@ exit;
 
 # sub routines
 sub module_sanity_check {
-   @modules_to_install = qw( Net::IP Geo::IP );
+   @modules_to_install = qw( Net::IP Geo::IP::PurePerl );
    foreach $module(@modules_to_install) {
       chomp($module);
       eval("use $module;");
