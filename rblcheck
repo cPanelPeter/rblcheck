@@ -376,7 +376,6 @@ sub checkit() {
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
 		my $RESULT = gethostbyname ( $lookup );
 		if ( ! defined $RESULT ) { 
-			#print GREEN "[NOT LISTED]\n" unless($listedonly);
 			print GREEN "[OK]\n" unless($listedonly);
 		}
 		else { 
@@ -386,16 +385,13 @@ sub checkit() {
 			if ($listedonly) { 
 				print YELLOW . $BLACKLIST . WHITE . ": ";
 				print RED "[LISTED] ($RESULT)\n";
-            if ($TXT) { 
-               print CYAN "Reason: $TXT\n";
-            }
 			}
 			else { 
 				print RED "[LISTED] ($RESULT)\n";
-            if ($TXT) { 
-               print CYAN "Reason: $TXT\n";
-            }
 			}
+         if ($TXT) { 
+            print CYAN "Reason: $TXT\n";
+         }
 			$NUMLISTED++;
 		}
 	}
