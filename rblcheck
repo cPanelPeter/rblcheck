@@ -386,6 +386,9 @@ sub checkit() {
 			if ($listedonly) { 
 				print YELLOW . $BLACKLIST . WHITE . ": ";
 				print RED "[LISTED] ($RESULT)\n";
+            if ($TXT) { 
+               print CYAN "Reason: $TXT\n";
+            }
 			}
 			else { 
 				print RED "[LISTED] ($RESULT)\n";
