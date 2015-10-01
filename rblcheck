@@ -5,7 +5,7 @@
 # CREATED 8/9/2015
 #
 use strict;
-my $version = "1.0.05";
+my $version = "1.0.06";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -50,7 +50,6 @@ my @RBLS = qw(
    blacklist.sci.kun.nl
    blacklist.sequoia.ops.asp.att.net
    blacklist.woody.ch
-   black.uribl.com
    bl.blocklist.de
    bl.drmx.org
    bl.emailbasura.org
@@ -144,7 +143,6 @@ my @RBLS = qw(
    fresh.spameatingmonkey.net
    fulldom.rfc-clueless.org
    gl.suomispam.net
-   grey.uribl.com
    hartkore.dnsbl.tuxad.de
    hil.habeas.com
    hog.blackhole.cantv.net
@@ -170,7 +168,6 @@ my @RBLS = qw(
    mail-abuse.blacklist.jippg.org
    misc.dnsbl.sorbs.net
    multi.surbl.org
-   multi.uribl.com
    netblockbl.spamgrouper.to
    netbl.spameatingmonkey.net
    netscan.rbl.blockedservers.com
@@ -210,7 +207,6 @@ my @RBLS = qw(
    rbl.tdk.net
    rbl.zenon.net
    recent.spam.dnsbl.sorbs.net
-   red.uribl.com
    relays.bl.kundenserver.de
    relays.dnsbl.sorbs.net
    relays.nether.net
@@ -355,6 +351,7 @@ if ($help or ($checkip and @ARGV[0] eq "")) {
 
 sub checkit() { 
 	$ENTEREDIP=$_[0];
+   print "Checking IP $ENTEREDIP\n\n";
 	my $NUMLISTED=0;
 	my $LOOKUPHOST;
 	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {

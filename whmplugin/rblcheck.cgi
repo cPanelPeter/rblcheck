@@ -7,6 +7,7 @@
 
 use strict;
 use Geo::IP::PurePerl;
+use Net::IP;
 use Socket;
 use CGI qw(:standard);
 $| = 1;
