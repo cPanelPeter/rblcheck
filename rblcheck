@@ -80,7 +80,6 @@ my @RBLS = qw(
    cdl.anti-spam.org.cn
    cidr.bl.mcafee.com
    combined.rbl.msrbl.net
-   dbl.spamhaus.org
    dbl.tiopan.com
    db.wpbl.info
    dnsbl-0.uceprotect.net

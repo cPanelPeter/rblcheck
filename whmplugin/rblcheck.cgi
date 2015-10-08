@@ -12,7 +12,7 @@ use Socket;
 use CGI qw(:standard);
 $| = 1;
 
-my $version = "1.0.05";
+my $version = "1.0.06";
 my @RBLS = qw( 
    0spam.fusionzero.com
    0spam-killlist.fusionzero.com
@@ -332,8 +332,22 @@ Note: if you are using a public DNS resolver (such as Google or OpenDNS) then yo
 will show as being listed in uribl.com lists because they block anyone using a public DNS<br>
 resolver.  It does not mean your IP address is actually blacklisted.  
 <p>
+Please note that neither your provider or datacenter or cPanel, Inc. have any control over<br>
+the blacklists.  Each RBL has their own criteria for listing an IP address.  You will need<br>
+to personally visit each RBL where your IP is listed and check with them on what their removal<br>
+process is.<p>  
+Don't just request to have your IP delisted without fixing the problem.  If you do that, <br>
+you will most likely just get listed again and next time it will be more difficult to get<br>
+removed.  Make sure that your network and mail server are properly configured and that your <br>
+workstations/servers are free from viruses and other malware.  
+<p>
+Follow the steps outlined in the RBL removal process. Once you have solved the problem that <br>
+got you listed, go back and attempt removal. Many of them have a self-service removal process.
+<br>You should also not need to pay to be removed. These should all be professional RBL's and<br>
+they are not out to extort you. Their goal is to have a cleaner, faster and better<br> 
+Internet experience for everyone. 
 
-<a href="rblcheck.cgi">Return</a>
+<p><a href="rblcheck.cgi">Return</a>
 
 END
 }
@@ -344,10 +358,17 @@ Content-Type: text/html; charset=iso-8859-1
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>RBL Check ($aliascnt)</title>
+		<title>RBL Check</title>
 	</head>
 	<body>
-	RBL Check...<p>
+	<h1>RBL Check</h1><p>
+   Q: What is an RBL?<p>
+   A: RBL stands for Realtime Blackhole List. These are spam blocking lists that allow a <br>
+   system administrator to block email from being sent out that have a history of sending spam<br>
+   or are infected with something that is doing the spamming.  Once your IP Address is on an <br>
+   RBL, any other server that subscribes to that RBL will refuse email from your server. <p>
+   Check your servers IP's now (or any IP) to see if it is listed. 
+   <p>
 	<form action="rblcheck.cgi">
 	The servers main ip is: $mainip <input type="hidden" name="ipaddr" value="$mainip"><input type="submit" value="Check"><br>
 	</form>
