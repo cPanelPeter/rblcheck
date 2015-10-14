@@ -43,7 +43,6 @@ my @RBLS = qw(
    badnets.spameatingmonkey.net
    b.barracudacentral.org
    bb.barracudacentral.org
-   blackholes.scconsult.com
    blacklist.mail.ops.asp.att.net
    blacklist.mailrelay.att.net
    blacklist.netcore.co.in
