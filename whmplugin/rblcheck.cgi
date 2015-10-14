@@ -12,7 +12,7 @@ use Socket;
 use CGI qw(:standard);
 $| = 1;
 
-my $version = "1.0.06";
+my $version = "1.0.07";
 my @RBLS = qw( 
    0spam.fusionzero.com
    0spam-killlist.fusionzero.com
@@ -31,14 +31,12 @@ my @RBLS = qw(
    badnets.spameatingmonkey.net
    b.barracudacentral.org
    bb.barracudacentral.org
-   blackholes.scconsult.com
    blacklist.mail.ops.asp.att.net
    blacklist.mailrelay.att.net
    blacklist.netcore.co.in
    blacklist.sci.kun.nl
    blacklist.sequoia.ops.asp.att.net
    blacklist.woody.ch
-   black.uribl.com
    bl.blocklist.de
    bl.drmx.org
    bl.emailbasura.org
@@ -131,7 +129,6 @@ my @RBLS = qw(
    fresh.spameatingmonkey.net
    fulldom.rfc-clueless.org
    gl.suomispam.net
-   grey.uribl.com
    hartkore.dnsbl.tuxad.de
    hil.habeas.com
    hog.blackhole.cantv.net
@@ -157,7 +154,6 @@ my @RBLS = qw(
    mail-abuse.blacklist.jippg.org
    misc.dnsbl.sorbs.net
    multi.surbl.org
-   multi.uribl.com
    netblockbl.spamgrouper.to
    netbl.spameatingmonkey.net
    netscan.rbl.blockedservers.com
@@ -197,7 +193,6 @@ my @RBLS = qw(
    rbl.tdk.net
    rbl.zenon.net
    recent.spam.dnsbl.sorbs.net
-   red.uribl.com
    relays.bl.kundenserver.de
    relays.dnsbl.sorbs.net
    relays.nether.net
@@ -297,8 +292,8 @@ my $IPALIASLINE;
 my $IPALIAS;
 open(ALIASES,"/etc/ips");
 my @ALIASES=<ALIASES>;
-my @NEWALIASES=undef;
 close(ALIASES);
+my @NEWALIASES=undef;
 foreach $IPALIASLINE(@ALIASES) { 
 	chomp($IPALIASLINE);
 	($IPALIAS)=(split(/:/,$IPALIASLINE))[0];
@@ -328,10 +323,6 @@ if ($enteredipaddr) {
 	&checkit($enteredipaddr);
 	print <<END;
 <p>
-Note: if you are using a public DNS resolver (such as Google or OpenDNS) then your IP address<br>
-will show as being listed in uribl.com lists because they block anyone using a public DNS<br>
-resolver.  It does not mean your IP address is actually blacklisted.  
-<p>
 Please note that neither your provider or datacenter or cPanel, Inc. have any control over<br>
 the blacklists.  Each RBL has their own criteria for listing an IP address.  You will need<br>
 to personally visit each RBL where your IP is listed and check with them on what their removal<br>
@@ -347,7 +338,7 @@ got you listed, go back and attempt removal. Many of them have a self-service re
 they are not out to extort you. Their goal is to have a cleaner, faster and better<br> 
 Internet experience for everyone. 
 
-<p><a href="rblcheck.cgi">Return</a>
+<a href="rblcheck.cgi">Return</a>
 
 END
 }
@@ -361,7 +352,7 @@ Content-Type: text/html; charset=iso-8859-1
 		<title>RBL Check</title>
 	</head>
 	<body>
-	<h1>RBL Check</h1><p>
+	RBL Check...<p>
    Q: What is an RBL?<p>
    A: RBL stands for Realtime Blackhole List. These are spam blocking lists that allow a <br>
    system administrator to block email from being sent out that have a history of sending spam<br>
@@ -372,9 +363,11 @@ Content-Type: text/html; charset=iso-8859-1
 	<form action="rblcheck.cgi">
 	The servers main ip is: $mainip <input type="hidden" name="ipaddr" value="$mainip"><input type="submit" value="Check"><br>
 	</form>
-
-	These are the additional IP's (aliases): 
-	<p>
+END
+	if ($aliascnt > 1) { 
+		print "These are the additional IP's (aliases): <p>\n";
+	}
+	print <<END;
 	<ul>
 	@NEWALIASES
 	</ul>
@@ -452,6 +445,9 @@ sub replace_with_natip {
 		chomp($insideIP);
 		if ($insideIP eq $privateIP) { 
 			return $outsideIP;
+		}
+		else {
+			return $insideIP;
 		}
 	}
 }
