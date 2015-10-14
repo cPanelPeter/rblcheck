@@ -294,6 +294,7 @@ open(ALIASES,"/etc/ips");
 my @ALIASES=<ALIASES>;
 close(ALIASES);
 my @NEWALIASES=undef;
+splice(@ALIASES,0,1);
 foreach $IPALIASLINE(@ALIASES) { 
 	chomp($IPALIASLINE);
 	($IPALIAS)=(split(/:/,$IPALIASLINE))[0];
@@ -324,20 +325,20 @@ if ($enteredipaddr) {
 	print <<END;
 <p>
 Please note that neither your provider or datacenter or cPanel, Inc. have any control over<br>
-the blacklists.  Each RBL has their own criteria for listing an IP address.  You will need<br>
-to personally visit each RBL where your IP is listed and check with them on what their removal<br>
-process is.<p>  
+the blacklists.  Each RBL provider has their own criteria for listing an IP address.<br>
+You will need to contact each RBL provider where your IP is listed and check with them on what<br>
+their removal process is.<p>  
 Don't just request to have your IP delisted without fixing the problem.  If you do that, <br>
-you will most likely just get listed again and next time it will be more difficult to get<br>
+you will most likely just get listed again and next time it will be much more difficult to get<br>
 removed.  Make sure that your network and mail server are properly configured and that your <br>
 workstations/servers are free from viruses and other malware.  
 <p>
 Follow the steps outlined in the RBL removal process. Once you have solved the problem that <br>
 got you listed, go back and attempt removal. Many of them have a self-service removal process.
-<br>You should also not need to pay to be removed. These should all be professional RBL's and<br>
-they are not out to extort you. Their goal is to have a cleaner, faster and better<br> 
-Internet experience for everyone. 
+<br>Most of these RBL providers are professional and their goal is to have a cleaner, faster<br> 
+and better Internet experience for everyone. 
 
+<P>
 <a href="rblcheck.cgi">Return</a>
 
 END
@@ -416,7 +417,7 @@ sub checkit() {
             if ($TXT) { 
                print "<font color=\"BLUE\">Reason: $TXT</font><BR>\n";
 			}
-			$NUMLISTED++ unless($BLACKLIST =~ m/uribl.com/);
+			$NUMLISTED++;
 		}
 	}
 	print "<p>\n";
@@ -469,9 +470,4 @@ sub replace_mainIP {
 			return $outsideIP;
 		}
 	}
-}
-
-sub getGeoData {
-   my $ip2chk=$_[0];
-   return;   
 }
