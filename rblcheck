@@ -464,5 +464,8 @@ sub replace_mainIP {
 		if ($outsideIP eq $privateIP) {
 			return $outsideIP;
 		}
+      else { 
+			return $insideIP;
+      }
 	}
 }
