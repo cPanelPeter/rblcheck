@@ -281,14 +281,14 @@ my @RBLS = qw(
 );
 
 my $totrbls=@RBLS;
-my $mainip; 
+#my $mainip; 
 my $allips; 
 my $email; 
 my $checkip; 
 my $listedonly;
 my $help;
 my $ENTEREDIP;
-my $mainip;
+#my $mainip;
 my $ipaddrline;
 my $ipaddr;
 my @ALIASES;
@@ -306,10 +306,11 @@ GetOptions(
 );
 
 if ($mainip) { 
-	open(MAINIP,"/var/cpanel/mainip");
-	$tocheck = <MAINIP>;
-	close(MAINIP);
-	&checkit($tocheck);
+#	open(MAINIP,"/var/cpanel/mainip");
+#	$tocheck = <MAINIP>;
+#	close(MAINIP);
+#	&checkit($tocheck);
+	&checkit($mainip);
 }
 
 if ($checkip) { 
@@ -325,9 +326,9 @@ if ($tocheck eq "" and $checkip) {
 }
 
 if ($allips) { 
-	open(MAINIP,"/var/cpanel/mainip");
-	$mainip = <MAINIP>;
-	close(MAINIP);
+#	open(MAINIP,"/var/cpanel/mainip");
+#	$mainip = <MAINIP>;
+#	close(MAINIP);
 	push(@ALL,$mainip);
 	open(IPALIASES,"/etc/ips");
 	@ALIASES=<IPALIASES>;
