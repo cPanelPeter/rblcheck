@@ -281,14 +281,14 @@ my @RBLS = qw(
 );
 
 my $totrbls=@RBLS;
-#my $mainip; 
+my $mainip; 
 my $allips; 
 my $email; 
 my $checkip; 
 my $listedonly;
 my $help;
 my $ENTEREDIP;
-#my $mainip;
+my $mainip;
 my $ipaddrline;
 my $ipaddr;
 my @ALIASES;
