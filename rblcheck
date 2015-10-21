@@ -306,10 +306,10 @@ GetOptions(
 );
 
 if ($mainip) { 
-#	open(MAINIP,"/var/cpanel/mainip");
-#	$tocheck = <MAINIP>;
-#	close(MAINIP);
-#	&checkit($tocheck);
+	open(MAINIP,"/var/cpanel/mainip");
+	$tocheck = <MAINIP>;
+	close(MAINIP);
+	&checkit($tocheck);
 	&checkit($mainip);
 }
 
@@ -326,9 +326,9 @@ if ($tocheck eq "" and $checkip) {
 }
 
 if ($allips) { 
-#	open(MAINIP,"/var/cpanel/mainip");
-#	$mainip = <MAINIP>;
-#	close(MAINIP);
+	open(MAINIP,"/var/cpanel/mainip");
+	$mainip = <MAINIP>;
+	close(MAINIP);
 	push(@ALL,$mainip);
 	open(IPALIASES,"/etc/ips");
 	@ALIASES=<IPALIASES>;
