@@ -68,7 +68,6 @@ my @RBLS = qw(
    bl.spamstinks.com
    bl.suomispam.net
    bl.tiopan.com
-   bogons.cymru.com
    bogusmx.rfc-clueless.org
    bsb.empty.us
    bsb.spamlookup.net
@@ -91,7 +90,6 @@ my @RBLS = qw(
    dnsbl6.anticaptcha.net
    dnsbl.anticaptcha.net
    dnsbl.aspnet.hu
-   dnsbl.burnt-tech.com
    dnsblchile.org
    dnsbl.cobion.com
    dnsbl.cyberlogic.net
@@ -257,8 +255,6 @@ my @RBLS = qw(
    uribl.zeustracker.abuse.ch
    urired.spameatingmonkey.net
    url.rbl.jp
-   v4.fullbogons.cymru.com
-   v6.fullbogons.cymru.com
    virbl.dnsbl.bit.nl
    virus.rbl.jp
    virus.rbl.msrbl.net
