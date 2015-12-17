@@ -56,7 +56,6 @@ my @RBLS = qw(
    bl.spamstinks.com
    bl.suomispam.net
    bl.tiopan.com
-   bogons.cymru.com
    bogusmx.rfc-clueless.org
    bsb.empty.us
    bsb.spamlookup.net

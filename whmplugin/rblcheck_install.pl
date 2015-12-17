@@ -12,15 +12,15 @@ mkdir "/usr/local/cpanel/whostmgr/docroot/cgi/rblcheck";
 print " - Done\n";
 
 # Obtain the plugin from Github
-my $http = HTTP::Tiny->new();
-print "Downloading rblcheck.cgi... ";
-$http->mirror( 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.cgi', '/root/rblcheck.cgi' );
+print "Downloading whmrblcheck.tar.gz... ";
+my $download = qx[ curl --silent https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/whmrblcheck.tar.gz > "/root/whmrblcheck.tar.gz" ];
 print " - Done\n";
-print "Downloading rblcheck.jpg... ";
-$http->mirror( 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.jpg', '/root/rblcheck.jpg' );
-print " - Done\n";
-print "Downloading rblcheck.conf... ";
-$http->mirror( 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/whmplugin/rblcheck.conf', '/root/rblcheck.conf' );
+
+# Uncompress whmrblcheck.tar.gz
+print "Extracting whmrblcheck.tar.gz... ";
+my $tar = Archive::Tar->new;
+$tar->read("/root/whmrblcheck.tar.gz");
+$tar->extract();
 print " - Done\n";
 
 # Copy the rblcheck.jpg (Icon) image file to /usr/local/cpanel/whostmgr/docroot/addon_plugins
@@ -43,7 +43,7 @@ print "Creating directory /usr/local/share/GeoIP... ";
 mkdir "/usr/local/share/GeoIP";
 print " - Done\n";
 print "Downloading GeoLiteCity.dat.gz... ";
-$http->mirror( 'http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz', '/usr/local/share/GeoIP/GeoLiteCity.dat.gz' );
+my $download = qx[ curl --silent http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz > "/usr/local/share/GeoIP/GeoLiteCity.dat.gz" ];
 print " - Done\n";
 print "Uncompressing GeoLiteCity.dat.gz...";
 my $input="/usr/local/share/GeoIP/GeoLiteCity.dat.gz";
@@ -54,22 +54,25 @@ print " - Done\n";
 # Register the plugin
 print "Registering plugin...";
 system( "/usr/local/cpanel/bin/register_appconfig /root/rblcheck.conf" );
-print " - Done\n";
 
 print "\nRBL Check WHM Plugin installed!\n";
 exit;
 
 # sub routines
 sub module_sanity_check {
-   @modules_to_install = qw( Net::IP Geo::IP::PurePerl IO::Uncompress::Gunzip File::Copy HTTP::Tiny IO::Socket::SSL );
-   foreach $module(@modules_to_install) {
-      chomp($module);
-      eval("use $module;");
-      if ($@) {
-         print "WARNING: Perl Module $module not installed!\n";
-         print "Installing now - Please stand by.\n";
-         system( "/usr/local/cpanel/bin/cpanm --force $module 2>&1" );
-      }
-   }
-   return;
+	@modules_to_install = qw( Net::IP Geo::IP::PurePerl IO::Uncompress::Gunzip File::Copy Archive::Tar );
+	foreach $module(@modules_to_install) {
+		chomp($module);
+		print "Checking if $module is installed - ";
+		eval("use $module;");
+		if ($@) {
+			print "No - Installing now... ";
+			my $install = qx[ /usr/local/cpanel/bin/cpanm --force $module 2>&1 ];
+			print "Done!\n";
+		}
+		else { 
+			print "Yes\n";
+		}
+	}
+	return;
 }
