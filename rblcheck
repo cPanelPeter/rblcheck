@@ -1,29 +1,23 @@
-#!/usr/bin/perl
+#!/usr/local/cpanel/3rdparty/bin/perl
 # SCRIPT: rblcheck
 # AUTHOR: Peter Elsner <peter.elsner@cpanel.net>
 # PURPOSE: Check an IP address against various RBL's (Realtime Blackhole Lists)
 # CREATED 8/9/2015
 #
+BEGIN {
+    unshift @INC, '/usr/local/cpanel';
+    unshift @INC, '/usr/local/cpanel/scripts';
+    unshift @INC, '/usr/local/cpanel/bin';
+}
 use strict;
-my $version = "1.0.06";
+my $version = "2.0.01";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
+use Cpanel::Config::LoadWwwAcctConf ();
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
-
-# Check for NAT configuration
-my $HASNAT=0;
-$HASNAT=&check_for_nat();
-# Get mainip 
-open(MAINIP,"/var/cpanel/mainip");
-my $mainip = <MAINIP>;
-close(MAINIP);
-
-if ($HASNAT) {
-	$mainip=&replace_mainIP($mainip);
-}
 
 my @RBLS = qw( 
    0spam.fusionzero.com
@@ -277,17 +271,45 @@ my @RBLS = qw(
 );
 
 my $totrbls=@RBLS;
-my $mainip; 
+
+# Check for NAT configuration
+my $HASNAT=0;
+$HASNAT=&check_for_nat();
+
+# Get servers_mainip for /etc/wwwacct.conf file.
+my $wwwacct = Cpanel::Config::LoadWwwAcctConf::loadwwwacctconf();
+my $servers_mainip = $wwwacct->{'ADDR'};
+my $cpnatline;
+my $PrivateIP;
+my $PublicIP;
+my @IPALIASES;
+
+if ($HASNAT) { 
+	open(CPNAT,"/var/cpanel/cpnat");
+	my @CPNATDATA=<CPNAT>;
+	close(CPNAT);
+	foreach $cpnatline(@CPNATDATA) { 
+		chomp($cpnatline);
+		($PrivateIP,$PublicIP)=(split(/\s+/,$cpnatline));
+		if ($PrivateIP eq $servers_mainip) { 
+			$servers_mainip=$PublicIP;
+			next;
+		}
+		push(@IPALIASES,$PublicIP);
+	}
+}
+	
+my $mainip;
 my $allips; 
 my $email; 
 my $checkip; 
+my $listips;
 my $listedonly;
 my $help;
 my $ENTEREDIP;
-my $mainip;
 my $ipaddrline;
 my $ipaddr;
-my @ALIASES;
+my $ipalias;
 my @ALL;
 my $tocheck;
 my $TXT;
@@ -295,6 +317,7 @@ my $TXT;
 GetOptions(
 	'mainip' => \$mainip,
 	'allips' => \$allips,
+	'listips' => \$listips,
 	'email' => \$email,
 	'listedonly' => \$listedonly,
 	'checkip' => \$checkip,
@@ -302,51 +325,42 @@ GetOptions(
 );
 
 if ($mainip) { 
-	open(MAINIP,"/var/cpanel/mainip");
-	$tocheck = <MAINIP>;
-	close(MAINIP);
-	&checkit($tocheck);
-	&checkit($mainip);
+	&checkit($servers_mainip);
+	exit;
 }
 
 if ($checkip) { 
 	$tocheck=@ARGV[0];
 	chomp($tocheck);
 	&checkit($tocheck);
-}
-
-
-if ($tocheck eq "" and $checkip) { 
-	print "Need an IP with the --checkip flag!\n";
-	&help;
+	exit;
 }
 
 if ($allips) { 
-	open(MAINIP,"/var/cpanel/mainip");
-	$mainip = <MAINIP>;
-	close(MAINIP);
-	push(@ALL,$mainip);
-	open(IPALIASES,"/etc/ips");
-	@ALIASES=<IPALIASES>;
-	close(IPALIASES); 
-	foreach $ipaddrline(@ALIASES) { 
-		chomp($ipaddrline);
-		($ipaddr)=(split(/:/,$ipaddrline))[0];
-		push(@ALL,$ipaddr);
-	}
+	@ALL=@IPALIASES;
+	push(@ALL,$servers_mainip);
 	foreach $tocheck(@ALL) { 
 		chomp($tocheck);
 		&checkit($tocheck);
 	}
+	exit;
 }
 
-if ($help or ($checkip and @ARGV[0] eq "")) { 
-	&help;
+if ($listips) { 
+	print "Main IP: $servers_mainip\n";
+	foreach $ipalias(@IPALIASES) { 
+		print "IP Alias: $ipalias\n";
+	}
+	exit;
 }
+
+&help;
+
+exit;
 
 sub checkit() { 
 	$ENTEREDIP=$_[0];
-   print "Checking IP $ENTEREDIP\n\n";
+	print "Checking IP $ENTEREDIP\n\n" unless($ENTEREDIP eq "");
 	my $NUMLISTED=0;
 	my $LOOKUPHOST;
 	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
@@ -361,12 +375,9 @@ sub checkit() {
 	} 
 	else {
       # IP is not valid
-		die "FATAL - invalid host \"$ENTEREDIP\"\n";
+		die "Error - Invalid IP $ENTEREDIP\n";
 	}
 	foreach my $BLACKLIST (@RBLS) {
-		if ($listedonly) {
-#			print ".";
-		}
 		print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
 		my $RESULT = gethostbyname ( $lookup );
@@ -395,18 +406,16 @@ sub checkit() {
 	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
 }
 
-exit;
-
 sub help { 
-	print "rblcheck [currently checking against $totrbls Realtime Blackhole Lists (RBL's)]\n\n";
-	print "   --main checks the main IP address (/var/cpanel/mainip).\n";
+	print "rblcheck\n";
+	print "   --main checks the main IP address.\n";
 	print "   --allips checks all IP addresses on the server.\n";
+	print "   --listips lists all IP addresses on the server.\n";
 	print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
 	print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server\n";
 	print "   --email sends email to root user (not yet implemented)\n";
-	print "   --summary prints a summary of what was found (not yet implemented)\n";
 	print "   --help (you're looking at it!)\n";
-	exit;
+#	exit;
 }
 
 sub module_sanity_check {
@@ -414,55 +423,12 @@ sub module_sanity_check {
    if ($@) {
       print "WARNING: Perl Module Net::IP.pm not installed!\n";
       print "Installing now - Please stand by.\n";
-      system("/usr/local/cpanel/bin/cpanm --force Net::IP");
+      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP > 2>&1 ];
    }
    return;
 }
 
 sub check_for_nat() {
 	return if (!(-e("/var/cpanel/cpnat")));
-	my $NATFOUND=0;
-	$NATFOUND=1;
-	return $NATFOUND;;
-}
-
-sub replace_with_natip {
-	my $privateIP=$_[0];
-	my $outsideIP;
-	my $insideIP;
-	open(CPNAT,"/var/cpanel/cpnat");
-	my @CPNAT=<CPNAT>;
-	close(CPNAT);
-	my $cpnat;
-	foreach $cpnat(@CPNAT) {
-		chomp($cpnat);
-		($outsideIP,$insideIP)=(split(/\s+/,$cpnat));
-		chomp($outsideIP);
-		chomp($insideIP);
-		if ($insideIP eq $privateIP) { 
-			return $outsideIP; 
-		}
-	}
-}
-
-sub replace_mainIP {
-	my $privateIP=$_[0];
-	my $outsideIP;
-	my $insideIP;
-	open(CPNAT,"/var/cpanel/cpnat");
-	my @CPNAT=<CPNAT>;
-	close(CPNAT);
-	my $cpnat;
-	foreach $cpnat(@CPNAT) {
-		chomp($cpnat);
-		($outsideIP,$insideIP)=(split(/\s+/,$cpnat));
-		chomp($outsideIP);
-		chomp($insideIP);
-		if ($outsideIP eq $privateIP) {
-			return $outsideIP;
-		}
-      else { 
-			return $insideIP;
-      }
-	}
+	return 1;
 }
