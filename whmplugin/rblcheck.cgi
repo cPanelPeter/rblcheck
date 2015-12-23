@@ -1,18 +1,26 @@
-#!/usr/bin/perl
+#!/usr/local/cpanel/3rdparty/bin/perl
 # SCRIPT: rblcheck
 # AUTHOR: Peter Elsner <peter.elsner@cpanel.net>
 # PURPOSE: Check an IP address against various RBL's (Realtime Blackhole Lists)
 # CREATED 8/9/2015
 #
 
+BEGIN {
+    unshift @INC, '/usr/local/cpanel';
+    unshift @INC, '/usr/local/cpanel/scripts';
+    unshift @INC, '/usr/local/cpanel/bin';
+    unshift @INC, '/usr/local/share/perl5';
+}
+
 use strict;
 use Geo::IP::PurePerl;
 use Net::IP;
 use Socket;
+use Cpanel::Config::LoadWwwAcctConf ();
 use CGI qw(:standard);
 $| = 1;
 
-my $version = "1.0.07";
+my $version = "1.0.10";
 my @RBLS = qw( 
    0spam.fusionzero.com
    0spam-killlist.fusionzero.com
@@ -51,7 +59,6 @@ my @RBLS = qw(
    bl.scientificspam.net
    bl.score.senderscore.com
    bl.spamcannibal.org
-   bl.spamcop.net
    bl.spameatingmonkey.net
    bl.spamstinks.com
    bl.suomispam.net
@@ -261,7 +268,6 @@ my @RBLS = qw(
    wormrbl.imp.ch
    worms-bl.kundenserver.de
    xbl.spamhaus.org
-   zen.spamhaus.org
    z.mailspike.net
    zombie.dnsbl.sorbs.net
    zz.countries.nerd.dk
@@ -275,41 +281,46 @@ my $TXT;
 my $HASNAT=0;
 $HASNAT=&check_for_nat();
 
-# Get mainip 
-open(MAINIP,"/var/cpanel/mainip");
-my $mainip = <MAINIP>;
-close(MAINIP);
+# Get servers_mainip for /etc/wwwacct.conf file.
+my $wwwacct = Cpanel::Config::LoadWwwAcctConf::loadwwwacctconf();
+my $servers_mainip = $wwwacct->{'ADDR'};
+my $cpnatline;
+my $PrivateIP;
+my $PublicIP;
+my @IPALIASES;
+my @NEWALIASES;
+my $IPALIAS;
 
-if ($HASNAT) { 
-	$mainip=&replace_mainIP($mainip);
+if ($HASNAT) {
+   open(CPNAT,"/var/cpanel/cpnat");
+   my @CPNATDATA=<CPNAT>;
+   close(CPNAT);
+   foreach $cpnatline(@CPNATDATA) {
+      chomp($cpnatline);
+      ($PrivateIP,$PublicIP)=(split(/\s+/,$cpnatline));
+      if ($PrivateIP eq $servers_mainip) {
+         $servers_mainip=$PublicIP;
+         next;
+      }
+      push(@IPALIASES,$PublicIP);
+   }
 }
 
 my ($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude)="";
 
-# Check for additional IP's in /etc/ips file
-my $IPALIASLINE;
-my $IPALIAS;
-open(ALIASES,"/etc/ips");
-my @ALIASES=<ALIASES>;
-close(ALIASES);
-my @NEWALIASES=undef;
-splice(@ALIASES,0,1);
-foreach $IPALIASLINE(@ALIASES) { 
-	chomp($IPALIASLINE);
-	($IPALIAS)=(split(/:/,$IPALIASLINE))[0];
-	if ($HASNAT) { 
-		$IPALIAS=&replace_with_natip($IPALIAS);
-	}
-	push(@NEWALIASES, "<form action='rblcheck.cgi'>\n");
-	push(@NEWALIASES, "<li>$IPALIAS <input type='hidden' name='ipaddr' value='$IPALIAS'><input type='submit' value='Check'></li>\n");
-	push(@NEWALIASES, "</form>");
+foreach $IPALIAS(@IPALIASES) { 
+	chomp($IPALIAS);
+	push(@NEWALIASES, "<li>$IPALIAS</li>\n");
 }
 
 my $aliascnt=@NEWALIASES;
 
 my $enteredipaddr = param('ipaddr');
+my @SelectedRBLs = param('selectedItems');
+my $totselected=@SelectedRBLs;
+my $multiline;
 if ($enteredipaddr) { 
-	# Get GEO IP data for $mainip
+	# Get GEO IP data for $servers_mainip
 	my $gi = Geo::IP::PurePerl->new("/usr/local/share/GeoIP/GeoLiteCity.dat", GEOIP_STANDARD);
 	($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude) = $gi->get_city_record($enteredipaddr);
 	print "Content-Type: text/html; charset=iso-8859-1\n\n";
@@ -340,6 +351,9 @@ and better Internet experience for everyone.
 <P>
 <a href="rblcheck.cgi">Return</a>
 
+</body>
+</html>
+
 END
 }
 else { 
@@ -349,7 +363,82 @@ Content-Type: text/html; charset=iso-8859-1
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>RBL Check</title>
+	<script type="text/javascript"> 
+
+	function addItems() {
+    	var ai = document.getElementById("availableItems");
+    	var si = document.getElementById("selectedItems");
+    	for (i=0;i<ai.options.length;i++) {
+      		if (ai.options[i].selected) {
+        		var opt = ai.options[i];
+        		si.options[si.options.length] = new Option(opt.innerHTML, opt.value);
+        		ai.options[i] = null; i = i - 1;
+      		}
+    	}
+  	}
+
+	function addAll() { 
+    	var ai = document.getElementById("availableItems"); 
+    	var si = document.getElementById("selectedItems"); 
+    	for (i=0;i<ai.options.length;i++) { 
+			var opt = ai.options[i]; 
+			si.options[si.options.length] = new Option(opt.innerHTML, opt.value); 
+		} 
+		ai.options.length = 0; 
+	} 
+
+  function removeItems() {
+    var ai = document.getElementById("availableItems"); 
+    var si = document.getElementById("selectedItems"); 
+    for (i=0;i<si.options.length;i++) { 
+      if (si.options[i].selected) { 
+        var opt = si.options[i]; 
+        ai.options[ai.options.length] = new Option(opt.innerHTML, opt.value); 
+        si.options[i] = null; i = i - 1; 
+      } 
+    } 
+    sortAvailable(); 
+  } 
+
+  function removeAll() { 
+    var ai = document.getElementById("availableItems"); 
+    var si = document.getElementById("selectedItems"); 
+    for (i=0;i<si.options.length;i++) { 
+      var opt = si.options[i]; 
+      ai.options[ai.options.length] = new Option(opt.innerHTML, opt.value); 
+    } 
+    si.options.length = 0; 
+    sortAvailable(); 
+  } 
+
+  function sortAvailable() { 
+    var ai = document.getElementById("availableItems"); 
+    var tmp = ""; 
+    for (i=0;i<ai.options.length;i++) { 
+      if (tmp > "") tmp +=","; 
+      tmp += ai.options[i].innerHTML + "~" + ai.options[i].value; 
+    } 
+    var atmp = tmp.split(",") atmp = atmp.sort(); 
+    ai.options.length = 0;
+    for (i=0;i<atmp.length;i++) { 
+      var opt = atmp[i].split("~"); 
+      ai.options[i] = new Option(opt[0],opt[1]); 
+    } 
+  } 
+
+	function frmSubmit() {
+		var si = document.getElementById("selectedItems"); 
+		for (i=0;i<si.options.length;i++) { 
+			si.options[i].selected = true; 
+		} 
+		document.form1.submit(); 
+	} 
+  </script> 
+
+  <style type="text/css"> 
+    .btn {width:90px;} 
+  </style>
+	<title>RBL Check</title>
 	</head>
 	<body>
 	RBL Check...<p>
@@ -360,21 +449,97 @@ Content-Type: text/html; charset=iso-8859-1
    RBL, any other server that subscribes to that RBL will refuse email from your server. <p>
    Check your servers IP's now (or any IP) to see if it is listed. 
    <p>
-	<form action="rblcheck.cgi">
-	The servers main ip is: $mainip <input type="hidden" name="ipaddr" value="$mainip"><input type="submit" value="Check"><br>
-	</form>
+	Select the RBL's to use below: <p>
+	<form name="form1" id="form1" action="rblcheck.cgi">
+	<div style="width:130px;float:left;"> 
+	<select size="10" multiple name="availableItems" id="availableItems" style="width:120px;"> 
 END
-	if ($aliascnt > 1) { 
-		print "These are the additional IP's (aliases): <p>\n";
+	my $rblavail;
+	foreach $rblavail(@RBLS) { 
+		chomp($rblavail);
+		print "<option value=\"$rblavail\">$rblavail</option><br>\n";
+	}
+	print <<END;
+	</select>
+	</div>
+	<div style="width:100px;float:left;"> 
+	<script type="text/javascript"> 
+
+	function frmSubmit() {
+		var si = document.getElementById("selectedItems"); 
+		for (i=0;i<si.options.length;i++) { 
+			si.options[i].selected = true; 
+		} 
+		document.form1.submit(); 
+	} 
+
+	function addItems() {
+    	var ai = document.getElementById("availableItems");
+    	var si = document.getElementById("selectedItems");
+    	for (i=0;i<ai.options.length;i++) {
+      		if (ai.options[i].selected) {
+        		var opt = ai.options[i];
+        		si.options[si.options.length] = new Option(opt.innerHTML, opt.value);
+        		ai.options[i] = null; i = i - 1;
+      		}
+    	}
+  	}
+	function addAll() { 
+    	var ai = document.getElementById("availableItems"); 
+    	var si = document.getElementById("selectedItems"); 
+    	for (i=0;i<ai.options.length;i++) { 
+			var opt = ai.options[i]; 
+			si.options[si.options.length] = new Option(opt.innerHTML, opt.value); 
+		} 
+		ai.options.length = 0; 
+	} 
+  function removeItems() {
+    var ai = document.getElementById("availableItems"); 
+    var si = document.getElementById("selectedItems"); 
+    for (i=0;i<si.options.length;i++) { 
+      if (si.options[i].selected) { 
+        var opt = si.options[i]; 
+        ai.options[ai.options.length] = new Option(opt.innerHTML, opt.value); 
+        si.options[i] = null; i = i - 1; 
+      } 
+    } 
+    sortAvailable(); 
+  } 
+  function removeAll() { 
+    var ai = document.getElementById("availableItems"); 
+    var si = document.getElementById("selectedItems"); 
+    for (i=0;i<si.options.length;i++) { 
+      var opt = si.options[i]; 
+      ai.options[ai.options.length] = new Option(opt.innerHTML, opt.value); 
+    } 
+    si.options.length = 0; 
+    sortAvailable(); 
+  } 
+	</script>
+	<input type="button" class="btn" value="Add" onclick="addItems();" /> 
+	<input type="button" class="btn" value="Add All" onclick="addAll();" /> 
+	<input type="button" class="btn" value="Remove" onclick="removeItems();" /> 
+	<input type="button" class="btn" value="Remove All" onclick="removeAll();" /> 
+	</div> 
+	<div style="width:130px;float:left"> 
+	<select size="10" multiple name="selectedItems" id="selectedItems" style="width:120px;"> 
+	<option value="bl.spamcop.net">bl.spamcop.net</option>
+	<option value="zen.spamhaus.org">zen.spamhaus.org</option>
+	</select> 
+	</div> 
+	<p>
+	The servers main ip is: $servers_mainip 
+END
+	if ($aliascnt > 0) { 
+		print "<p>These are the additional IP's (aliases): <p>\n";
 	}
 	print <<END;
 	<ul>
 	@NEWALIASES
 	</ul>
 	<p>
-	<form action="rblcheck.cgi">
-	<div>Enter an IP Address to check: <input name="ipaddr" size="20"></div>
-	<div><input type="submit" value=" Check "></div>
+	<div>IP Address to check: <input name="ipaddr" size="20" value="$servers_mainip">
+	<input type="submit" value=" Check " onclick="frmSubmit();"></div>
 	</form>
 END
 }
@@ -400,8 +565,7 @@ sub checkit() {
       # IP is not valid
 		die "FATAL - invalid host \"$ENTEREDIP\"\n";
 	}
-	foreach my $BLACKLIST (@RBLS) {
-		#print "List: ". $BLACKLIST . ": $ENTEREDIP is ";
+	foreach my $BLACKLIST (@SelectedRBLs) {
 		print $BLACKLIST . ": ";
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
 		my $RESULT = gethostbyname ( $lookup );
@@ -420,53 +584,11 @@ sub checkit() {
 		}
 	}
 	print "<p>\n";
-	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+	print "Checked $totselected of $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
 }
 
-sub check_for_nat() { 
-	return if (!(-e("/var/cpanel/cpnat")));
-	my $NATFOUND=0;
-	$NATFOUND=1;
-	return $NATFOUND;;
+sub check_for_nat() {
+   return if (!(-e("/var/cpanel/cpnat")));
+   return 1;
 }
 
-sub replace_with_natip { 
-	my $privateIP=$_[0];
-	my $outsideIP;
-	my $insideIP;
-	open(CPNAT,"/var/cpanel/cpnat");
-	my @CPNAT=<CPNAT>;
-	close(CPNAT);
-	my $cpnat;
-	foreach $cpnat(@CPNAT) {
-		chomp($cpnat);
-		($outsideIP,$insideIP)=(split(/\s+/,$cpnat));
-		chomp($outsideIP);
-		chomp($insideIP);
-		if ($insideIP eq $privateIP) { 
-			return $outsideIP;
-		}
-		else {
-			return $insideIP;
-		}
-	}
-}
-
-sub replace_mainIP { 
-	my $privateIP=$_[0];
-	my $outsideIP;
-	my $insideIP;
-	open(CPNAT,"/var/cpanel/cpnat");
-	my @CPNAT=<CPNAT>;
-	close(CPNAT);
-	my $cpnat;
-	foreach $cpnat(@CPNAT) {
-		chomp($cpnat);
-		($outsideIP,$insideIP)=(split(/\s+/,$cpnat));
-		chomp($outsideIP);
-		chomp($insideIP);
-		if ($outsideIP eq $privateIP) { 
-			return $outsideIP;
-		}
-	}
-}
