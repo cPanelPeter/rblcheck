@@ -4,13 +4,15 @@
 # PURPOSE: Check an IP address against various RBL's (Realtime Blackhole Lists)
 # CREATED 8/9/2015
 #
+# TODO: Add --rbls [rblname, rblname, .. ] option to only check the rbls listed. 
+
 BEGIN {
     unshift @INC, '/usr/local/cpanel';
     unshift @INC, '/usr/local/cpanel/scripts';
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.01";
+my $version = "2.0.02";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -276,13 +278,14 @@ my $totrbls=@RBLS;
 my $HASNAT=0;
 $HASNAT=&check_for_nat();
 
-# Get servers_mainip for /etc/wwwacct.conf file.
+# Get servers_mainip from /etc/wwwacct.conf file.
 my $wwwacct = Cpanel::Config::LoadWwwAcctConf::loadwwwacctconf();
 my $servers_mainip = $wwwacct->{'ADDR'};
 my $cpnatline;
 my $PrivateIP;
 my $PublicIP;
 my @IPALIASES;
+my @MAIL2ROOT;
 
 if ($HASNAT) { 
 	open(CPNAT,"/var/cpanel/cpnat");
@@ -292,6 +295,8 @@ if ($HASNAT) {
 		chomp($cpnatline);
 		($PrivateIP,$PublicIP)=(split(/\s+/,$cpnatline));
 		if ($PrivateIP eq $servers_mainip) { 
+         chomp($PrivateIP);
+         chomp($PublicIP);
 			$servers_mainip=$PublicIP;
 			next;
 		}
@@ -398,12 +403,22 @@ sub checkit() {
          if ($TXT) { 
             print CYAN "Reason: $TXT\n";
          }
+         push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
 			$NUMLISTED++;
 		}
 	}
 
 	print "\n";
 	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+   if ($NUMLISTED > 0 and $email) { 
+      my $SENDMAIL = "/usr/sbin/sendmail";
+      open(MAIL, "|$SENDMAIL -ti");
+      print MAIL "To: root\n";
+      print MAIL "From: root\n";
+      print MAIL "Subject: rblcheck found $ENTEREDIP listed in $NUMLISTED RBL's\n\n";
+      print MAIL "@MAIL2ROOT";
+      close(MAIL);
+   }
 }
 
 sub help { 
@@ -412,8 +427,8 @@ sub help {
 	print "   --allips checks all IP addresses on the server.\n";
 	print "   --listips lists all IP addresses on the server.\n";
 	print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
-	print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server\n";
-	print "   --email sends email to root user (not yet implemented)\n";
+	print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server.\n";
+	print "   --email sends email to root user if an IP is listed.\n";
 	print "   --help (you're looking at it!)\n";
 #	exit;
 }
@@ -423,7 +438,7 @@ sub module_sanity_check {
    if ($@) {
       print "WARNING: Perl Module Net::IP.pm not installed!\n";
       print "Installing now - Please stand by.\n";
-      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP > 2>&1 ];
+      my $cpaninst = qx[ "/usr/local/cpanel/bin/cpanm --force Net::IP > 2>&1" ];
    }
    return;
 }
