@@ -438,7 +438,7 @@ sub module_sanity_check {
    if ($@) {
       print "WARNING: Perl Module Net::IP.pm not installed!\n";
       print "Installing now - Please stand by.\n";
-      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP > "2>&1" ];
+      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP ];
    }
    return;
 }
