@@ -4,7 +4,6 @@
 # PURPOSE: Check an IP address against various RBL's (Realtime Blackhole Lists)
 # CREATED 8/9/2015
 #
-# TODO: Add --rbls [rblname, rblname, .. ] option to only check the rbls listed. 
 
 BEGIN {
     unshift @INC, '/usr/local/cpanel';
@@ -12,7 +11,7 @@ BEGIN {
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.03";
+my $version = "2.0.04";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -59,6 +58,7 @@ my $allips;
 my $email; 
 my $checkip; 
 my $listips;
+my $listrbls;
 my $listedonly;
 my $help;
 my $ENTEREDIP;
@@ -68,16 +68,40 @@ my $ipalias;
 my @ALL;
 my $tocheck;
 my $TXT;
+my @rblnames;
+my $rbl;
 
 GetOptions(
 	'mainip' => \$mainip,
 	'allips' => \$allips,
 	'listips' => \$listips,
+	'listrbls' => \$listrbls,
 	'email' => \$email,
 	'listedonly' => \$listedonly,
-	'checkip' => \$checkip,
+	'checkip=s' => \$checkip,
+	'rbl=s@' => \@rblnames,
 	'help' => \$help,
 );
+
+if (@rblnames) { 
+	my @rblnames = split(/,/,join(',',@rblnames));	
+	my $inselected;
+	my $inall;
+	my @selected;
+	# We want to remove any RBL's that are entered in command line but not available in @RBLS
+	# basically sanitizing customer input. 
+	foreach $inselected(@rblnames) { 
+		chomp($inselected);
+		foreach $inall(@RBLS) { 
+			chomp($inall);
+			if ($inselected eq $inall) { 
+				push(@selected,$inselected);
+			}
+		}
+	}
+	@RBLS = sort(@selected);
+	$totrbls=@RBLS;
+}
 
 if ($mainip) { 
 	&checkit($servers_mainip);
@@ -85,7 +109,7 @@ if ($mainip) {
 }
 
 if ($checkip) { 
-	$tocheck=@ARGV[0];
+	$tocheck=$checkip;
 	chomp($tocheck);
 	&checkit($tocheck);
 	exit;
@@ -105,6 +129,14 @@ if ($listips) {
 	print "Main IP: $servers_mainip\n";
 	foreach $ipalias(@IPALIASES) { 
 		print "IP Alias: $ipalias\n";
+	}
+	exit;
+}
+
+if ($listrbls) { 
+	foreach $rbl(@RBLS) { 
+		chomp($rbl);
+		print $rbl . "\n";
 	}
 	exit;
 }
@@ -133,6 +165,7 @@ sub checkit() {
 		die "Error - Invalid IP $ENTEREDIP\n";
 	}
 	foreach my $BLACKLIST (@RBLS) {
+		chomp($BLACKLIST);
 		print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
 		my $RESULT = gethostbyname ( $lookup );
@@ -176,6 +209,8 @@ sub help {
 	print "   --main checks the main IP address.\n";
 	print "   --allips checks all IP addresses on the server.\n";
 	print "   --listips lists all IP addresses on the server.\n";
+	print "   --listrbls lists all RBL's that can be checked.\n";
+	print "   --rbl [RBL NAME] check only the RBL selected. Can have multiple --rbl values.\n";
 	print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
 	print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server.\n";
 	print "   --email sends email to root user if an IP is listed.\n";
