@@ -206,7 +206,7 @@ sub checkit() {
 
 sub help { 
 	print "rblcheck\n";
-	print "   --main checks the main IP address.\n";
+	print "   --mainip checks the main IP address.\n";
 	print "   --allips checks all IP addresses on the server.\n";
 	print "   --listips lists all IP addresses on the server.\n";
 	print "   --listrbls lists all RBL's that can be checked.\n";
