@@ -20,7 +20,7 @@ use Cpanel::Config::LoadWwwAcctConf ();
 use CGI qw(:standard);
 $| = 1;
 
-my $version = "1.0.11";
+my $version = "1.0.12";
 my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
 my $totrbls=@RBLS;
 my $ENTEREDIP;
@@ -51,6 +51,15 @@ if ($HASNAT) {
          $servers_mainip=$PublicIP;
          next;
       }
+      push(@IPALIASES,$PublicIP);
+   }
+}
+else {
+   open(IPS,"/etc/ips");
+   my @EXTRAIPS=<IPS>;
+   close(IPS);
+   foreach $extraIP (@EXTRAIPS) {
+      ($PublicIP)=(split(/:/,$extraIP))[0];
       push(@IPALIASES,$PublicIP);
    }
 }

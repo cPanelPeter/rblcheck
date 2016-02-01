@@ -11,7 +11,7 @@ BEGIN {
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.04";
+my $version = "2.0.05";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -51,6 +51,15 @@ if ($HASNAT) {
 		}
 		push(@IPALIASES,$PublicIP);
 	}
+}
+else {
+   open(IPS,"/etc/ips");
+   my @EXTRAIPS=<IPS>;
+   close(IPS);
+   foreach $extraIP (@EXTRAIPS) {
+      ($PublicIP)=(split(/:/,$extraIP))[0];
+      push(@IPALIASES,$PublicIP);
+   }
 }
 	
 my $mainip;

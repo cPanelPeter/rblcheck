@@ -62,7 +62,6 @@ dnsbl-3.uceprotect.net
 dnsbl6.anticaptcha.net
 dnsbl.anticaptcha.net
 dnsbl.aspnet.hu
-dnsblchile.org
 dnsbl.cobion.com
 dnsbl.cyberlogic.net
 dnsbl.dronebl.org
