@@ -56,6 +56,7 @@ else {
    open(IPS,"/etc/ips");
    my @EXTRAIPS=<IPS>;
    close(IPS);
+   my $extraIP;
    foreach $extraIP (@EXTRAIPS) {
       ($PublicIP)=(split(/:/,$extraIP))[0];
       push(@IPALIASES,$PublicIP);
