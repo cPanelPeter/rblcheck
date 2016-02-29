@@ -10,6 +10,7 @@ all.s5h.net
 all.spamrats.com
 aspews.ext.sorbs.net
 backscatter.spameatingmonkey.net
+bad.psky.me
 badconf.rhsbl.sorbs.net
 badhost.stopspam.org
 badnets.spameatingmonkey.net
