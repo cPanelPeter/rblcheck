@@ -145,7 +145,6 @@ no-more-funn.moensted.dk
 noptr.spamrats.com
 old.spam.dnsbl.sorbs.net
 orvedb.aupads.org
-pbl.spamhaus.org
 phishing.rbl.msrbl.net
 pofon.foobar.hu
 postmaster.rfc-clueless.org
@@ -189,8 +188,6 @@ rsbl.aupads.org
 safe.dnsbl.prs.proofpoint.com
 safe.dnsbl.sorbs.net
 sbl.nszones.com
-sbl.spamhaus.org
-sbl-xbl.spamhaus.org
 schizo-bl.kundenserver.de
 service.mailblacklist.com
 short.rbl.jp
@@ -241,7 +238,6 @@ work.drbldf.dsbl.ru
 work.drbl.gremlin.ru
 wormrbl.imp.ch
 worms-bl.kundenserver.de
-xbl.spamhaus.org
 zen.spamhaus.org
 z.mailspike.net
 zombie.dnsbl.sorbs.net
