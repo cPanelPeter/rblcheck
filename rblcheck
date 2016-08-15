@@ -157,6 +157,7 @@ exit;
 
 sub checkit() { 
 	$ENTEREDIP=$_[0];
+    print "========================================================\n";
 	print "Checking IP $ENTEREDIP\n\n" unless($ENTEREDIP eq "");
 	my $NUMLISTED=0;
 	my $LOOKUPHOST;
@@ -183,9 +184,11 @@ sub checkit() {
 			print GREEN "[OK]\n" unless($listedonly);
 		}
 		else { 
+            # http://perldoc.perl.org/Socket.html#%24string-%3d-inet_ntoa-%24ip_address
+            # We should be using inet_ntop or getnameinfo() - to support both IPV4 and IPV6
 			$RESULT = inet_ntoa ( $RESULT );
-         $TXT = qx[ dig $lookup TXT +short ];
-         chomp($TXT);
+            $TXT = qx[ dig $lookup TXT +short ];
+            chomp($TXT);
 			if ($listedonly) { 
 				print YELLOW . $BLACKLIST . WHITE . ": ";
 				print RED "[LISTED] ($RESULT)\n";
@@ -193,10 +196,10 @@ sub checkit() {
 			else { 
 				print RED "[LISTED] ($RESULT)\n";
 			}
-         if ($TXT) { 
-            print CYAN "Reason: $TXT\n";
-         }
-         push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
+            if ($TXT) { 
+                print CYAN "Reason: $TXT\n";
+            }
+            push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
 			$NUMLISTED++;
 		}
 	}
@@ -231,7 +234,7 @@ sub help {
 sub module_sanity_check {
    eval("use Net::IP;");
    if ($@) {
-      print "WARNING: Perl Module Net::IP.pm not installed!\n";
+      print "Note: Perl Module Net::IP.pm not installed!\n";
       print "Installing now - Please stand by.\n";
       my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP ];
    }

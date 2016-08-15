@@ -138,7 +138,6 @@ misc.dnsbl.sorbs.net
 multi.surbl.org
 netblockbl.spamgrouper.to
 netbl.spameatingmonkey.net
-netscan.rbl.blockedservers.com
 new.spam.dnsbl.sorbs.net
 nomail.rhsbl.sorbs.net
 no-more-funn.moensted.dk
@@ -202,7 +201,6 @@ spam.dnsbl.sorbs.net
 spamguard.leadmon.net
 spamlist.or.kr
 spam.pedantic.org
-spam.rbl.blockedservers.com
 Spam-RBL.fr
 spamrbl.imp.ch
 spam.rbl.msrbl.net
