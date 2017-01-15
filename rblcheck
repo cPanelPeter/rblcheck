@@ -11,7 +11,7 @@ BEGIN {
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.07";
+my $version = "2.0.08";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -19,6 +19,25 @@ use Cpanel::Config::LoadWwwAcctConf ();
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
+
+my $allrbls; 
+my $mainip;
+my $allips; 
+my $email; 
+my $checkip; 
+my $listips;
+my $listrbls;
+my $listedonly;
+my $help;
+my $ENTEREDIP;
+my $ipaddrline;
+my $ipaddr;
+my $ipalias;
+my @ALL;
+my $tocheck;
+my $TXT;
+my @rblnames;
+my $rbl;
 
 my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
 if ($allrbls) { 
@@ -65,25 +84,6 @@ else {
       push(@IPALIASES,$PublicIP);
    }
 }
-	
-my $mainip;
-my $allips; 
-my $allrbls; 
-my $email; 
-my $checkip; 
-my $listips;
-my $listrbls;
-my $listedonly;
-my $help;
-my $ENTEREDIP;
-my $ipaddrline;
-my $ipaddr;
-my $ipalias;
-my @ALL;
-my $tocheck;
-my $TXT;
-my @rblnames;
-my $rbl;
 
 GetOptions(
 	'mainip' => \$mainip,
