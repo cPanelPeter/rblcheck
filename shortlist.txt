@@ -1,0 +1,11 @@
+all.spamrats.com
+aspews.ext.sorbs.net
+backscatter.spameatingmonkey.net
+bad.psky.me
+b.barracudacentral.org
+bl.score.senderscore.com
+bl.spamcop.net
+cbl.abuseat.org
+dnsbl.sorbs.net
+rbl.abuse.ro
+zen.spamhaus.org

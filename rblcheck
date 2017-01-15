@@ -11,7 +11,7 @@ BEGIN {
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.05";
+my $version = "2.0.06";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -20,7 +20,10 @@ use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
 
-my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
+my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
+if ($allrbls) { 
+    @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
+}
 my $totrbls=@RBLS;
 
 # Check for NAT configuration
@@ -86,6 +89,7 @@ GetOptions(
 	'allips' => \$allips,
 	'listips' => \$listips,
 	'listrbls' => \$listrbls,
+	'allrbls' => \$allrbls,
 	'email' => \$email,
 	'listedonly' => \$listedonly,
 	'checkip=s' => \$checkip,
@@ -222,6 +226,7 @@ sub help {
 	print "   --mainip checks the main IP address.\n";
 	print "   --allips checks all IP addresses on the server.\n";
 	print "   --listips lists all IP addresses on the server.\n";
+	print "   --allrbls uses all known RBL's (takes longer). Default: list of more common RBL's\n";
 	print "   --listrbls lists all RBL's that can be checked.\n";
 	print "   --rbl [RBL NAME] check only the RBL selected. Can have multiple --rbl values.\n";
 	print "   --listedonly only displays information if an IP address is listed in an RBL.\n";

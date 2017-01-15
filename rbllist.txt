@@ -15,7 +15,6 @@ badconf.rhsbl.sorbs.net
 badhost.stopspam.org
 badnets.spameatingmonkey.net
 b.barracudacentral.org
-bb.barracudacentral.org
 blacklist.mail.ops.asp.att.net
 blacklist.mailrelay.att.net
 blacklist.netcore.co.in
