@@ -11,7 +11,7 @@ BEGIN {
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.08";
+my $version = "2.0.09";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -39,11 +39,6 @@ my $TXT;
 my @rblnames;
 my $rbl;
 
-my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
-if ($allrbls) { 
-    @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
-}
-my $totrbls=@RBLS;
 
 # Check for NAT configuration
 my $HASNAT=0;
@@ -97,6 +92,12 @@ GetOptions(
 	'rbl=s@' => \@rblnames,
 	'help' => \$help,
 );
+
+my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
+if ($allrbls) { 
+    @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
+}
+my $totrbls=@RBLS;
 
 if (@rblnames) { 
 	my @rblnames = split(/,/,join(',',@rblnames));	
