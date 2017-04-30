@@ -20,11 +20,13 @@ use Cpanel::Config::LoadWwwAcctConf ();
 use CGI qw(:standard);
 $| = 1;
 
-my $version = "1.0.12";
+my $version = "1.0.13";
 my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
+my @SHORTRBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
 my $totrbls=@RBLS;
 my $ENTEREDIP;
 my $TXT;
+my $NUMLISTED=0;
 
 # Check for NAT configuration
 my $HASNAT=0;
@@ -75,7 +77,7 @@ foreach $IPALIAS(@IPALIASES) {
 my $aliascnt=@NEWALIASES;
 
 my $enteredipaddr = param('ipaddr');
-my @SelectedRBLs = param('selectedItems');
+my @SelectedRBLs = multi_param('selectedItems');
 my $totselected=@SelectedRBLs;
 my $multiline;
 if ($enteredipaddr) { 
@@ -91,7 +93,12 @@ if ($enteredipaddr) {
 	}
 	print "<hr>\n";
 	&checkit($enteredipaddr);
-	print <<END;
+	if ($NUMLISTED == 0) { 
+		print "<p>Congratulations! - $ENTEREDIP is not currently listed in the $totselected RBL's checked!\n";
+		print "<p><a href=\"rblcheck.cgi\">Return</a>\n";
+	}
+	else { 
+		print <<END;
 <p>
 Please note that neither your provider or datacenter or cPanel, Inc. have any control over<br>
 the blacklists.  Each RBL provider has their own criteria for listing an IP address.<br>
@@ -114,6 +121,7 @@ and better Internet experience for everyone.
 </html>
 
 END
+	}
 }
 else { 
 	print <<END;
@@ -208,7 +216,7 @@ Content-Type: text/html; charset=iso-8859-1
    RBL, any other server that subscribes to that RBL will refuse email from your server. <p>
    Check your servers IP's now (or any IP) to see if it is listed. 
    <p>
-	Select the RBL's to use below (recommand at minimum <a href="https://www.spamcop.net/bl.shtml" target="_blank">bl.spamcop.net</a> and <a href="https://www.spamhaus.org/zen/" target="_blank">zen.spamhaus.org</a>): <p>
+	Select the RBL's to use below. A minimum set has already been added for your convenience.<p>
 	<form name="form1" id="form1" action="rblcheck.cgi">
 	<div style="width:130px;float:left;"> 
 	<select size="10" multiple name="availableItems" id="availableItems" style="width:120px;"> 
@@ -282,6 +290,13 @@ END
 	</div> 
 	<div style="width:130px;float:left"> 
 	<select size="10" multiple name="selectedItems" id="selectedItems" style="width:120px;"> 
+END
+	my $rblshort;
+	foreach $rblshort(@SHORTRBLS) { 
+		chomp($rblshort);
+		print "<option value=\"$rblshort\">$rblshort</option><br>\n";
+	}
+	print <<END;
 	</select> 
 	</div> 
 	<p>
@@ -306,7 +321,6 @@ exit;
 
 sub checkit() { 
 	$ENTEREDIP=$_[0];
-	my $NUMLISTED=0;
 	my $LOOKUPHOST;
 	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
       # IPV6
@@ -341,7 +355,7 @@ sub checkit() {
 		}
 	}
 	print "<p>\n";
-	print "Checked $totselected of $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+	print "Checked $totselected selected of $totrbls total Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
 }
 
 sub check_for_nat() {
