@@ -11,7 +11,7 @@ BEGIN {
     unshift @INC, '/usr/local/cpanel/bin';
 }
 use strict;
-my $version = "2.0.09";
+my $version = "2.0.10";
 &module_sanity_check;
 use Socket;
 use Getopt::Long;
@@ -167,6 +167,11 @@ sub checkit() {
 	print "Checking IP $ENTEREDIP\n\n" unless($ENTEREDIP eq "");
 	my $NUMLISTED=0;
 	my $LOOKUPHOST;
+    my $IS_IP_VALID = is_ip($ENTEREDIP);
+    if (!($IS_IP_VALID)) {
+        print RED "FATAL - invalid entry \"$ENTEREDIP\"\n";
+        exit;
+    }
 	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
       # IPV6
 		my $EXPANDEDIP = new Net::IP ( $ENTEREDIP );
@@ -177,10 +182,6 @@ sub checkit() {
       # IPV4 
 		$LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
 	} 
-	else {
-      # IP is not valid
-		die "Error - Invalid IP $ENTEREDIP\n";
-	}
 	foreach my $BLACKLIST (@RBLS) {
 		chomp($BLACKLIST);
 		print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
@@ -244,6 +245,12 @@ sub module_sanity_check {
       print "Note: Perl Module Net::IP.pm not installed!\n";
       print "Installing now - Please stand by.\n";
       my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP ];
+   }
+   eval("use Data::Validate::IP;");
+   if ($@) {
+      print "Note: Perl Module Data::Validate::IP.pm not installed!\n";
+      print "Installing now - Please stand by.\n";
+      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Data::Validate::IP ];
    }
    return;
 }

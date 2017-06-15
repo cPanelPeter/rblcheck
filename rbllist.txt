@@ -92,7 +92,6 @@ dul.blackhole.cantv.net
 dul.dnsbl.borderware.com
 dul.dnsbl.sorbs.net
 dul.pacifier.net
-dunk.dnsbl.tuxad.de
 dyna.spamrats.com
 dyndns.rbl.jp
 dynip.rothen.com
@@ -110,7 +109,6 @@ fresh15.spameatingmonkey.net
 fresh.spameatingmonkey.net
 fulldom.rfc-clueless.org
 gl.suomispam.net
-hartkore.dnsbl.tuxad.de
 hil.habeas.com
 hog.blackhole.cantv.net
 http.dnsbl.sorbs.net
@@ -131,7 +129,6 @@ l3.bbfh.ext.sorbs.net
 l4.bbfh.ext.sorbs.net
 list.bbfh.org
 list.blogspambl.com
-lookup.dnsbl.iip.lu
 mail-abuse.blacklist.jippg.org
 misc.dnsbl.sorbs.net
 multi.surbl.org
@@ -238,4 +235,3 @@ worms-bl.kundenserver.de
 zen.spamhaus.org
 z.mailspike.net
 zombie.dnsbl.sorbs.net
-zz.countries.nerd.dk

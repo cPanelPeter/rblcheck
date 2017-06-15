@@ -361,7 +361,7 @@ sub checkit() {
 		}
 	}
 	print "<p>\n";
-	print "Checked $totselected selected of $totrbls total Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
 }
 
 sub check_for_nat() {
