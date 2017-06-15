@@ -13,20 +13,27 @@ BEGIN {
 }
 
 use strict;
+use warnings;
 use Geo::IP::PurePerl;
 use Net::IP;
+use Data::Validate::IP qw(is_ip);
 use Socket;
 use Cpanel::Config::LoadWwwAcctConf ();
 use CGI qw(:standard);
 $| = 1;
+use lib '/usr/local/cpanel/';
+use Cpanel::Template;
+use Whostmgr::HTMLInterface ();
+Whostmgr::HTMLInterface::defheader('RBL Check');
 
-my $version = "1.0.13";
+my $version = "1.0.14";
 my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt ];
 my @SHORTRBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
 my $totrbls=@RBLS;
 my $ENTEREDIP;
 my $TXT;
 my $NUMLISTED=0;
+my $LOOKUPHOST;
 
 # Check for NAT configuration
 my $HASNAT=0;
@@ -84,7 +91,6 @@ if ($enteredipaddr) {
 	# Get GEO IP data for $servers_mainip
 	my $gi = Geo::IP::PurePerl->new("/usr/local/share/GeoIP/GeoLiteCity.dat", GEOIP_STANDARD);
 	($country_code,$country_code3,$country_name,$region,$city,$postal_code,$latitude,$longitude) = $gi->get_city_record($enteredipaddr);
-	print "Content-Type: text/html; charset=iso-8859-1\n\n";
 	print "Checking $enteredipaddr...<br>\n";
 	if ($country_name) { 
 		print "Country: $country_name ( $country_code / $country_code3 )<br>\n";
@@ -125,7 +131,6 @@ END
 }
 else { 
 	print <<END;
-Content-Type: text/html; charset=iso-8859-1
 
 <!DOCTYPE html>
 <html>
@@ -317,25 +322,26 @@ END
 }
 
 # RETURN TO MAIN MENU
+Whostmgr::HTMLInterface::deffooter();
 exit;
 
 sub checkit() { 
 	$ENTEREDIP=$_[0];
 	my $LOOKUPHOST;
+	my $IS_IP_VALID = is_ip($ENTEREDIP);
+	if (!($IS_IP_VALID)) { 
+		print "FATAL - invalid entry \"$ENTEREDIP\"\n";
+		print "<p><a href=\"rblcheck.cgi\">Return</a>\n";
+		exit;
+	}
 	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
-      # IPV6
 		my $EXPANDEDIP = new Net::IP ( $ENTEREDIP );
 		$LOOKUPHOST = join '.', reverse ( split '', $EXPANDEDIP->ip() );
 		$LOOKUPHOST =~ s/\.:\././g;
 	} 
 	elsif ( $ENTEREDIP =~ /\./ and $ENTEREDIP !~ /:/ ) {
-      # IPV4 
 		$LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
 	} 
-	else {
-      # IP is not valid
-		die "FATAL - invalid host \"$ENTEREDIP\"\n";
-	}
 	foreach my $BLACKLIST (@SelectedRBLs) {
 		print $BLACKLIST . ": ";
 		my $lookup = "$LOOKUPHOST.$BLACKLIST";
