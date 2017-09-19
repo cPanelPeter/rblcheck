@@ -103,7 +103,6 @@ exitnodes.tor.dnsbl.sectoor.de
 feb.spamlab.com
 fnrbl.fast.net
 forbidden.icm.edu.pl
-free.v4bl.org
 fresh10.spameatingmonkey.net
 fresh15.spameatingmonkey.net
 fresh.spameatingmonkey.net
@@ -116,7 +115,6 @@ images.rbl.msrbl.net
 in.dnsbl.org
 ipbl.zeustracker.abuse.ch
 ips.backscatterer.org
-ip.v4bl.org
 ipv6.blacklist.woody.ch
 ipv6.rbl.choon.net
 ix.dnsbl.manitu.net
