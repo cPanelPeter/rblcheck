@@ -16,6 +16,7 @@ my $version = "2.0.11";
 use Socket;
 use Getopt::Long;
 use Cpanel::Config::LoadWwwAcctConf ();
+use Net::IP;
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
