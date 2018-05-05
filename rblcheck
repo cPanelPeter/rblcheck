@@ -5,14 +5,14 @@
 # CREATED 8/9/2015
 #
 
-BEGIN {
-    unshift @INC, '/usr/local/cpanel';
-    unshift @INC, '/usr/local/cpanel/scripts';
-    unshift @INC, '/usr/local/cpanel/bin';
-}
+#BEGIN {
+#    unshift @INC, '/usr/local/cpanel';
+#    unshift @INC, '/usr/local/cpanel/scripts';
+#    unshift @INC, '/usr/local/cpanel/bin';
+#}
 use strict;
-my $version = "2.0.10";
-&module_sanity_check;
+my $version = "2.0.11";
+#&module_sanity_check;
 use Socket;
 use Getopt::Long;
 use Cpanel::Config::LoadWwwAcctConf ();
@@ -38,7 +38,6 @@ my $tocheck;
 my $TXT;
 my @rblnames;
 my $rbl;
-
 
 # Check for NAT configuration
 my $HASNAT=0;
@@ -104,8 +103,6 @@ if (@rblnames) {
 	my $inselected;
 	my $inall;
 	my @selected;
-	# We want to remove any RBL's that are entered in command line but not available in @RBLS
-	# basically sanitizing customer input. 
 	foreach $inselected(@rblnames) { 
 		chomp($inselected);
 		foreach $inall(@RBLS) { 
@@ -191,8 +188,6 @@ sub checkit() {
 			print GREEN "[OK]\n" unless($listedonly);
 		}
 		else { 
-            # http://perldoc.perl.org/Socket.html#%24string-%3d-inet_ntoa-%24ip_address
-            # We should be using inet_ntop or getnameinfo() - to support both IPV4 and IPV6
 			$RESULT = inet_ntoa ( $RESULT );
             $TXT = qx[ dig $lookup TXT +short ];
             chomp($TXT);
@@ -239,21 +234,21 @@ sub help {
 #	exit;
 }
 
-sub module_sanity_check {
-   eval("use Net::IP;");
-   if ($@) {
-      print "Note: Perl Module Net::IP.pm not installed!\n";
-      print "Installing now - Please stand by.\n";
-      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP ];
-   }
-   eval("use Data::Validate::IP;");
-   if ($@) {
-      print "Note: Perl Module Data::Validate::IP.pm not installed!\n";
-      print "Installing now - Please stand by.\n";
-      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Data::Validate::IP ];
-   }
-   return;
-}
+#sub module_sanity_check {
+#   eval("use Net::IP;");
+#   if ($@) {
+#      print "Note: Perl Module Net::IP.pm not installed!\n";
+#      print "Installing now - Please stand by.\n";
+#      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP ];
+#   }
+#   eval("use Data::Validate::IP;");
+#   if ($@) {
+#      print "Note: Perl Module Data::Validate::IP.pm not installed!\n";
+#      print "Installing now - Please stand by.\n";
+#      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Data::Validate::IP ];
+#   }
+#   return;
+#}
 
 sub check_for_nat() {
 	return if (!(-e("/var/cpanel/cpnat")));

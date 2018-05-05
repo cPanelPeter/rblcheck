@@ -37,7 +37,6 @@ bl.score.senderscore.com
 bl.spamcannibal.org
 bl.spamcop.net
 bl.spameatingmonkey.net
-bl.spamstinks.com
 bl.suomispam.net
 bl.tiopan.com
 bogusmx.rfc-clueless.org
@@ -80,6 +79,7 @@ dnsbl.rv-soft.info
 dnsbl.rymsho.ru
 dnsbl.sorbs.net
 dnsbl.spam-champuru.livedoor.com
+dnsbl.spfbl.net
 dnsbl.stopspam.org
 dnsbl.tornevall.org
 dnsbl.webequipped.com
@@ -121,7 +121,6 @@ ix.dnsbl.manitu.net
 korea.services.net
 l1.apews.org
 l1.bbfh.ext.sorbs.net
-l2.apews.org
 l2.bbfh.ext.sorbs.net
 l3.bbfh.ext.sorbs.net
 l4.bbfh.ext.sorbs.net
