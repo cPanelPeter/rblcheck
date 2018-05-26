@@ -62,7 +62,6 @@ dnsbl6.anticaptcha.net
 dnsbl.anticaptcha.net
 dnsbl.aspnet.hu
 dnsbl.cobion.com
-dnsbl.cyberlogic.net
 dnsbl.dronebl.org
 dnsbl.forefront.microsoft.com
 dnsbl.inps.de
@@ -159,7 +158,6 @@ rbl.interserver.net
 rbl.iprange.net
 rbl.lugh.ch
 rbl.megarbl.net
-rbl.rbldns.ru
 rbl.schulte.org
 rbl.spamlab.com
 rbl.talkactive.net
