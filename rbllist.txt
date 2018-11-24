@@ -75,7 +75,6 @@ dnsbl.rv-soft.info
 dnsbl.rymsho.ru
 dnsbl.sorbs.net
 dnsbl.spam-champuru.livedoor.com
-dnsbl.spfbl.net
 dnsbl.stopspam.org
 dnsbl.tornevall.org
 dnsbl.webequipped.com

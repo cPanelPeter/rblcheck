@@ -8,7 +8,6 @@ bl.spamcop.net
 cbl.abuseat.org
 dnsbl.sorbs.net
 spam.dnsbl.sorbs.net
-dnsbl.spfbl.net
 rbl.abuse.ro
 sbl.spamhaus.org
 xbl.spamhaus.org
