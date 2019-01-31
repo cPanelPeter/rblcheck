@@ -24,7 +24,6 @@ bl.konstant.no
 bl.mailspike.net
 bl.mav.com.br
 bl.mipspace.com
-bl.nszones.com
 bl.scientificspam.net
 bl.score.senderscore.com
 bl.spamcannibal.org
@@ -91,7 +90,6 @@ dul.blackhole.cantv.net
 dul.dnsbl.borderware.com
 dul.dnsbl.sorbs.net
 dul.pacifier.net
-dyn.nszones.com
 dyna.spamrats.com
 dyndns.rbl.jp
 dynip.rothen.com
