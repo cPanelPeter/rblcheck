@@ -12,7 +12,6 @@ all.spamrats.com
 aspews.ext.sorbs.net
 b.barracudacentral.org
 backscatter.spameatingmonkey.net
-bad.psky.me
 badconf.rhsbl.sorbs.net
 badhost.stopspam.org
 badnets.spameatingmonkey.net
