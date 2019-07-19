@@ -25,7 +25,6 @@ bl.mav.com.br
 bl.mipspace.com
 bl.scientificspam.net
 bl.score.senderscore.com
-bl.spamcannibal.org
 bl.spamcop.net
 bl.spameatingmonkey.net
 bl.suomispam.net
