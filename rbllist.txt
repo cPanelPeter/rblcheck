@@ -212,7 +212,6 @@ virbl.dnsbl.bit.nl
 virus.rbl.jp
 virus.rbl.msrbl.net
 vote.drbl.caravan.ru
-vote.drbl.gremlin.ru
 vote.drbldf.dsbl.ru
 web.dnsbl.sorbs.net
 web.rbl.msrbl.net
