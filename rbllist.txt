@@ -17,7 +17,6 @@ badhost.stopspam.org
 badnets.spameatingmonkey.net
 bl.blocklist.de
 bl.drmx.org
-bl.emailbasura.org
 bl.ipv6.spameatingmonkey.net
 bl.konstant.no
 bl.mailspike.net
@@ -58,7 +57,6 @@ dnsbl.aspnet.hu
 dnsbl.cobion.com
 dnsbl.dronebl.org
 dnsbl.forefront.microsoft.com
-dnsbl.inps.de
 dnsbl.justspam.org
 dnsbl.kempt.net
 dnsbl.madavi.de
@@ -94,7 +92,6 @@ dynip.rothen.com
 elitist.rfc-clueless.org
 escalations.dnsbl.sorbs.net
 ex.dnsbl.org
-exitnodes.tor.dnsbl.sectoor.de
 feb.spamlab.com
 fnrbl.fast.net
 forbidden.icm.edu.pl
@@ -153,7 +150,6 @@ rbl.fasthosts.co.uk
 rbl.interserver.net
 rbl.iprange.net
 rbl.lugh.ch
-rbl.megarbl.net
 rbl.schulte.org
 rbl.spamlab.com
 rbl.talkactive.net
@@ -175,7 +171,6 @@ safe.dnsbl.prs.proofpoint.com
 safe.dnsbl.sorbs.net
 sbl.nszones.com
 schizo-bl.kundenserver.de
-service.mailblacklist.com
 short.rbl.jp
 singlebl.spamgrouper.com
 singular.ttk.pte.hu
