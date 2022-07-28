@@ -7,7 +7,7 @@ access.redhawk.org
 admin.bl.kundenserver.de
 all.rbl.jp
 all.s5h.net
-all.spamrats.com
+spam.spamrats.com
 aspews.ext.sorbs.net
 b.barracudacentral.org
 backscatter.spameatingmonkey.net
@@ -54,7 +54,6 @@ dnsbl.forefront.microsoft.com
 dnsbl.justspam.org
 dnsbl.kempt.net
 dnsbl.madavi.de
-dnsbl.mcu.edu.tw
 dnsbl.net.ua
 dnsbl.othello.ch
 dnsbl.proxybl.org
