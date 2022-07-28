@@ -1,5 +1,4 @@
 0spam-killlist.fusionzero.com
-0spam.fusionzero.com
 0spamurl.fusionzero.com
 88.blocklist.zap
 Spam-RBL.fr
@@ -14,7 +13,6 @@ b.barracudacentral.org
 backscatter.spameatingmonkey.net
 badconf.rhsbl.sorbs.net
 badhost.stopspam.org
-badnets.spameatingmonkey.net
 bl.blocklist.de
 bl.drmx.org
 bl.ipv6.spameatingmonkey.net
@@ -35,15 +33,12 @@ blacklist.sci.kun.nl
 blacklist.sequoia.ops.asp.att.net
 blacklist.woody.ch
 block.dnsbl.sorbs.net
-block.stopspam.org
 bogusmx.rfc-clueless.org
 bsb.empty.us
 bsb.spamlookup.net
 cbl.abuseat.org
 cbl.anti-spam.org.cn
 cblless.anti-spam.org.cn
-cblplus.anti-spam.org.cn
-cdl.anti-spam.org.cn
 cidr.bl.mcafee.com
 combined.rbl.msrbl.net
 db.wpbl.info
@@ -52,7 +47,6 @@ dnsbl-0.uceprotect.net
 dnsbl-1.uceprotect.net
 dnsbl-2.uceprotect.net
 dnsbl-3.uceprotect.net
-dnsbl.anticaptcha.net
 dnsbl.aspnet.hu
 dnsbl.cobion.com
 dnsbl.dronebl.org
@@ -62,7 +56,6 @@ dnsbl.kempt.net
 dnsbl.madavi.de
 dnsbl.mcu.edu.tw
 dnsbl.net.ua
-dnsbl.openresolvers.org
 dnsbl.othello.ch
 dnsbl.proxybl.org
 dnsbl.rizon.net
@@ -117,7 +110,6 @@ l2.bbfh.ext.sorbs.net
 l3.bbfh.ext.sorbs.net
 l4.bbfh.ext.sorbs.net
 list.bbfh.org
-list.blogspambl.com
 mail-abuse.blacklist.jippg.org
 misc.dnsbl.sorbs.net
 multi.surbl.org
@@ -140,7 +132,6 @@ q.mail-abuse.com
 query.senderbase.org
 r.mail-abuse.com
 rbl.abuse.ro
-rbl.blakjak.net
 rbl.blockedservers.com
 rbl.choon.net
 rbl.dns-servicios.com
@@ -148,13 +139,10 @@ rbl.efnet.org
 rbl.efnetrbl.org
 rbl.fasthosts.co.uk
 rbl.interserver.net
-rbl.iprange.net
 rbl.lugh.ch
 rbl.schulte.org
 rbl.spamlab.com
 rbl.talkactive.net
-rbl.tdk.net
-rbl.zenon.net
 rbl2.triumf.ca
 recent.spam.dnsbl.sorbs.net
 relays.bl.kundenserver.de

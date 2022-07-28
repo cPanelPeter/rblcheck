@@ -190,7 +190,7 @@ sub checkit() {
 			print GREEN "[OK]\n" unless($listedonly);
 		}
 		else { 
-			$RESULT = inet_ntoa ( $RESULT );
+            $RESULT = inet_ntoa ( $RESULT );
             $TXT = qx[ dig $lookup TXT +short ];
             chomp($TXT);
 			if ($listedonly) { 
