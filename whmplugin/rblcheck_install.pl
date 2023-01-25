@@ -31,12 +31,12 @@ print CYAN " - Done\n";
 
 # Copy the rblcheck.jpg (Icon) image file to /usr/local/cpanel/whostmgr/docroot/addon_plugins
 print YELLOW "Copying rblcheck.jpg to /usr/local/cpanel/whostmgr/docroot/addon_plugins... ";
-copy("/root/rblcheck.jpg","/usr/local/cpanel/whostmgr/docroot/addon_plugins") or die "Copy failed: $!";
+move("/root/rblcheck.jpg","/usr/local/cpanel/whostmgr/docroot/addon_plugins") or die "Copy failed: $!";
 print CYAN " - Done\n";
 
 # Copy the rblcheck.cgi file to /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck
 print YELLOW "Copying rblcheck.cgi to /usr/local/cpanel/whostmgr/docroot/cgi/rblcheck... ";
-copy("/root/rblcheck.cgi","/usr/local/cpanel/whostmgr/docroot/cgi/rblcheck") or die "Copy failed: $!";
+move("/root/rblcheck.cgi","/usr/local/cpanel/whostmgr/docroot/cgi/rblcheck") or die "Copy failed: $!";
 print CYAN " - Done\n";
 
 # Set execute permissions on the rblcheck.cgi script
