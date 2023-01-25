@@ -12,7 +12,6 @@ aspews.ext.sorbs.net
 b.barracudacentral.org
 backscatter.spameatingmonkey.net
 badconf.rhsbl.sorbs.net
-badhost.stopspam.org
 bl.blocklist.de
 bl.drmx.org
 bl.ipv6.spameatingmonkey.net
