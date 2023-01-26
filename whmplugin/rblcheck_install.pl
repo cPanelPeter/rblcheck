@@ -49,4 +49,5 @@ print YELLOW "Registering plugin...";
 system( "/usr/local/cpanel/bin/register_appconfig /root/rblcheck.conf" );
 
 print GREEN "\nRBL Check WHM Plugin installed!\n";
+unlink( "/root/whmrblcheck.tar.gz" );
 exit;

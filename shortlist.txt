@@ -27,11 +27,9 @@ netbl.spameatingmonkey.net
 noptr.spamrats.com
 rbl.abuse.ro
 rbl.interserver.net
-sbl.spamhaus.org
 spam.abuse.ch
 spam.dnsbl.sorbs.net
 spam.spamrats.com
 url.0spam.org
 virbl.dnsbl.bit.nl
-xbl.spamhaus.org
 zen.spamhaus.org
