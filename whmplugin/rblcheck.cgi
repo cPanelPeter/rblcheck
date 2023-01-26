@@ -47,12 +47,12 @@ Cpanel::Template::process_template('whostmgr', {
     },
 });
 
-my $version = "1.0.15";
+my $version = "1.0.16";
 my $RBLS = Cpanel::SafeRun::Timed::timedsaferun( 6, 'curl', '-s', 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt' );
 my @RBLS = split /\n/, $RBLS;
 my $SHORTRBLS = Cpanel::SafeRun::Timed::timedsaferun( 6, 'curl', '-s', 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt' );
 my @SHORTRBLS = split /\n/, $SHORTRBLS;
-my $totrbls=@RBLS;
+my $totrbls;
 my $ENTEREDIP;
 my $TXT;
 my $NUMLISTED=0;
@@ -66,7 +66,6 @@ my $cpnatline;
 my $PrivateIP;
 my $PublicIP;
 my @IPALIASES;
-#my @NEWALIASES;
 my @server_ips;
 my $IPALIAS;
 
@@ -74,9 +73,9 @@ my $ListIPsJSON = get_whmapi1('listips');
 my $main_ip_address;
 for my $ListOfIPs ( @{ $ListIPsJSON->{data}->{ip} } ) {
     if ( $ListOfIPs->{mainaddr} ) {
-		$main_ip_address = $ListOfIPs->{public_ip};
-	}
-	push @server_ips, $ListOfIPs->{public_ip};
+        $main_ip_address = $ListOfIPs->{public_ip};
+    }
+    push @server_ips, $ListOfIPs->{public_ip};
 }
 
 my ($country_code,$country_name)="";
@@ -97,16 +96,16 @@ if ($enteredipaddr) {
     }
     print "<hr>\n";
     my $starttime = Time::Piece->new;
-	print "Started: $starttime<br>\n";
-	print "<hr>\n";
+    print "Started: $starttime<br>\n";
+    print "<hr>\n";
     checkit($enteredipaddr, $onlylisted);
     my $endtime = Time::Piece->new;
-	print "<br>Completed: $endtime<br>\n";
+    print "<br>Completed: $endtime<br>\n";
     my $timediff = ( $endtime - $starttime );
 
     my $TotTime  = $timediff->pretty;
     $TotTime = $TotTime . "\n";
-	print "Elapsed Time: $TotTime<br>\n";
+    print "Elapsed Time: $TotTime<br>\n";
 
     if ($NUMLISTED == 0) { 
         print "<p>Congratulations! - $ENTEREDIP is not currently listed in the $totselected RBL's checked!\n";
@@ -303,17 +302,17 @@ END
     </select>
     </div>
     <p>
-	&nbsp;
-	<p>
-	&nbsp;
-	<p>
-	&nbsp;
-	<p>
-	&nbsp;
-	<p>
-	&nbsp;
-	<p>
-	&nbsp;
+    &nbsp;
+    <p>
+    &nbsp;
+    <p>
+    &nbsp;
+    <p>
+    &nbsp;
+    <p>
+    &nbsp;
+    <p>
+    &nbsp;
     <div>
     <input type="checkbox" name="onlylisted" value="1" > Show only when listed in an RBL<p>
     </div>
@@ -321,28 +320,28 @@ END
 END
     if ($aliascnt > 0) { 
         print "<p>Here are the $aliascnt IP's on this server: <p>\n";
-		print "<SELECT name=\"selectedIP\" id=\"selectedIP\" size=10 style=\"width:200px;\" ondblclick=\"showSelected()\">";
-		foreach my $ip (@server_ips) {
-			chomp($ip);
-			if ( $ip eq $servers_mainip ) {
-				print "<option selected value=\"$ip\">$ip (main shared IP)</option>";
-			}
-			else {
-				print "<option value=\"$ip\">$ip (dedicated)</option>";
-			}
-		}
-		print "</select>\n";
+        print "<SELECT name=\"selectedIP\" id=\"selectedIP\" size=10 style=\"width:200px;\" ondblclick=\"showSelected()\">";
+        foreach my $ip (@server_ips) {
+            chomp($ip);
+            if ( $ip eq $servers_mainip ) {
+                print "<option selected value=\"$ip\">$ip (main shared IP)</option>";
+            }
+            else {
+                print "<option value=\"$ip\">$ip (dedicated)</option>";
+            }
+        }
+        print "</select>\n";
     }
     print <<END;
-	<script>
-	function showSelected(){
-    	var s=document.getElementById('selectedIP');          //refers to that select with all options
-    	var selectText=s.options[s.selectedIndex].value   // takes the one which the user will select
-		document.getElementById('field2').value = selectText;
-	}
-	</script>
-	<p>
-	Select an IP address above or enter an IP address NOT on this server: <input type="text" id="field2" name="ipaddr" size="20" value="">
+    <script>
+    function showSelected(){
+        var s=document.getElementById('selectedIP');          //refers to that select with all options
+        var selectText=s.options[s.selectedIndex].value   // takes the one which the user will select
+        document.getElementById('field2').value = selectText;
+    }
+    </script>
+    <p>
+    Select an IP address above or enter an IP address NOT on this server: <input type="text" id="field2" name="ipaddr" size="20" value="">
     <input type="submit" value=" Check " onclick="frmSubmit();">
     </div>
     </form>
@@ -366,38 +365,39 @@ sub checkit {
         $LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
     }
     foreach my $BLACKLIST (@SelectedRBLs) {
-		chomp($BLACKLIST);
+        chomp($BLACKLIST);
         print $BLACKLIST . ": " unless( $LISTEDONLY );
         my $lookup = "$LOOKUPHOST.$BLACKLIST";
-		my $RESULT;
-		eval {
-    		local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
-    		alarm 3;
-    		$RESULT = gethostbyname( $lookup );
-    		alarm 0;
-		};
+        my $RESULT;
+        eval {
+            local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+            alarm 3;
+            $RESULT = gethostbyname( $lookup );
+            alarm 0;
+        };
 
-		if ( $@ ) {
-			print "<font color=\"CYAN\">[TIMED OUT]</font><BR>\n";
-			$NUMTIMEDOUT++;
-			next;
-		}
-		if ( ! defined $RESULT ) {
-			print "<font color=\"GREEN\">[OK]</font><BR>\n" unless( $LISTEDONLY );
-		}
-		else {
-			my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
-			print "<font color=\"RED\">[ LISTED - RESULT: $A ]</font>\n";
-			my $TXT=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'TXT', '+short' );
-			print "<font color=\"BLUE\"> - Additional Information: <font color=\"YELLOW\">$TXT</font><br>\n" if ( $TXT );
-			$NUMLISTED++;
-		}
+        if ( $@ ) {
+            print "<font color=\"CYAN\">[TIMED OUT]</font><BR>\n";
+                $NUMTIMEDOUT++;
+            next;
+        }
+        if ( ! defined $RESULT ) {
+            print "<font color=\"GREEN\">[OK]</font><BR>\n" unless( $LISTEDONLY );
+        }
+        else {
+            my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
+            print "<font color=\"RED\">[ LISTED - RESULT: $A ]</font>\n";
+            my $TXT=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'TXT', '+short' );
+            print "<font color=\"BLUE\"> - Additional Information: <font color=\"YELLOW\">$TXT</font><br>\n" if ( $TXT );
+            $NUMLISTED++;
+        }
     }
+    $totrbls=@SelectedRBLSs;
     print "<p>\n";
     print "<hr>\n";
     print "Checked $totrbls Realtime Blackhole Lists (RBL's).<BR>\n";
-	print "$ENTEREDIP is listed in $NUMLISTED Real-Time Blackhole Lists<br>\n";
-	print "$NUMTIMEDOUT Real-Time Blackhole Lists timed out.<br>\n";
+    print "$ENTEREDIP is listed in $NUMLISTED Real-Time Blackhole Lists<br>\n";
+    print "$NUMTIMEDOUT Real-Time Blackhole Lists timed out.<br>\n";
 }
 
 sub get_json_from_command {
