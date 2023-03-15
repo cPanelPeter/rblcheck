@@ -11,6 +11,7 @@ spam.spamrats.com
 aspews.ext.sorbs.net
 b.barracudacentral.org
 backscatter.spameatingmonkey.net
+bad.virusfree.cz
 badconf.rhsbl.sorbs.net
 bl.blocklist.de
 bl.drmx.org

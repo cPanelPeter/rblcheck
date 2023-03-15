@@ -19,7 +19,6 @@ dnsbl.sorbs.net
 dyna.spamrats.com
 hostkarma.junkemailfilter.com
 ix.dnsbl.manitu.net
-list.dnswl.org
 mail-abuse.blacklist.jippg.org
 multi.surbl.org
 nbl.0spam.org

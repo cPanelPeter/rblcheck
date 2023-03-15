@@ -5,17 +5,12 @@
 # CREATED 8/9/2015
 #
 
-#BEGIN {
-#    unshift @INC, '/usr/local/cpanel';
-#    unshift @INC, '/usr/local/cpanel/scripts';
-#    unshift @INC, '/usr/local/cpanel/bin';
-#}
 use strict;
-my $version = "2.0.12";
-#&module_sanity_check;
+my $version = "2.0.13";
 use Socket;
 use Getopt::Long;
 use Cpanel::Config::LoadWwwAcctConf ();
+use Cpanel::SafeRun::Timed();
 use Data::Validate::IP;
 use Net::IP;
 use Term::ANSIColor qw(:constants);
@@ -55,20 +50,20 @@ my @IPALIASES;
 my @MAIL2ROOT;
 
 if ($HASNAT) { 
-	open(CPNAT,"/var/cpanel/cpnat");
-	my @CPNATDATA=<CPNAT>;
-	close(CPNAT);
-	foreach $cpnatline(@CPNATDATA) { 
-		chomp($cpnatline);
-		($PrivateIP,$PublicIP)=(split(/\s+/,$cpnatline));
-		if ($PrivateIP eq $servers_mainip) { 
-         chomp($PrivateIP);
-         chomp($PublicIP);
-			$servers_mainip=$PublicIP;
-			next;
-		}
-		push(@IPALIASES,$PublicIP);
-	}
+    open(CPNAT,"/var/cpanel/cpnat");
+    my @CPNATDATA=<CPNAT>;
+    close(CPNAT);
+    foreach $cpnatline(@CPNATDATA) { 
+        chomp($cpnatline);
+        ($PrivateIP,$PublicIP)=(split(/\s+/,$cpnatline));
+        if ($PrivateIP eq $servers_mainip) { 
+            chomp($PrivateIP);
+            chomp($PublicIP);
+            $servers_mainip=$PublicIP;
+            next;
+        }
+        push(@IPALIASES,$PublicIP);
+    }
 }
 else {
    open(IPS,"/etc/ips");
@@ -82,16 +77,16 @@ else {
 }
 
 GetOptions(
-	'mainip' => \$mainip,
-	'allips' => \$allips,
-	'listips' => \$listips,
-	'listrbls' => \$listrbls,
-	'allrbls' => \$allrbls,
-	'email' => \$email,
-	'listedonly' => \$listedonly,
-	'checkip=s' => \$checkip,
-	'rbl=s@' => \@rblnames,
-	'help' => \$help,
+    'mainip' => \$mainip,
+    'allips' => \$allips,
+    'listips' => \$listips,
+    'listrbls' => \$listrbls,
+    'allrbls' => \$allrbls,
+    'email' => \$email,
+    'listedonly' => \$listedonly,
+    'checkip=s' => \$checkip,
+    'rbl=s@' => \@rblnames,
+    'help' => \$help,
 );
 
 my @RBLS = qx[ curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt ];
@@ -101,59 +96,59 @@ if ($allrbls) {
 my $totrbls=@RBLS;
 
 if (@rblnames) { 
-	my @rblnames = split(/,/,join(',',@rblnames));	
-	my $inselected;
-	my $inall;
-	my @selected;
-	foreach $inselected(@rblnames) { 
-		chomp($inselected);
-		foreach $inall(@RBLS) { 
-			chomp($inall);
-			if ($inselected eq $inall) { 
-				push(@selected,$inselected);
-			}
-		}
-	}
-	@RBLS = sort(@selected);
-	$totrbls=@RBLS;
+    my @rblnames = split(/,/,join(',',@rblnames));	
+    my $inselected;
+    my $inall;
+    my @selected;
+    foreach $inselected(@rblnames) { 
+        chomp($inselected);
+        foreach $inall(@RBLS) { 
+            chomp($inall);
+            if ($inselected eq $inall) { 
+                push(@selected,$inselected);
+            }
+        }
+    }
+    @RBLS = sort(@selected);
+    $totrbls=@RBLS;
 }
 
 if ($mainip) { 
-	&checkit($servers_mainip);
-	exit;
+    &checkit($servers_mainip);
+    exit;
 }
 
 if ($checkip) { 
-	$tocheck=$checkip;
-	chomp($tocheck);
-	&checkit($tocheck);
-	exit;
+    $tocheck=$checkip;
+    chomp($tocheck);
+    &checkit($tocheck);
+    exit;
 }
 
 if ($allips) { 
-	@ALL=@IPALIASES;
-	push(@ALL,$servers_mainip);
-	foreach $tocheck(@ALL) { 
-		chomp($tocheck);
-		&checkit($tocheck);
-	}
-	exit;
+    @ALL=@IPALIASES;
+    push(@ALL,$servers_mainip);
+    foreach $tocheck(@ALL) { 
+        chomp($tocheck);
+        &checkit($tocheck);
+    }
+    exit;
 }
 
 if ($listips) { 
-	print "Main IP: $servers_mainip\n";
-	foreach $ipalias(@IPALIASES) { 
-		print "IP Alias: $ipalias\n";
-	}
-	exit;
+    print "Main IP: $servers_mainip\n";
+    foreach $ipalias(@IPALIASES) { 
+        print "IP Alias: $ipalias\n";
+    }
+    exit;
 }
 
 if ($listrbls) { 
-	foreach $rbl(@RBLS) { 
-		chomp($rbl);
-		print $rbl . "\n";
-	}
-	exit;
+    foreach $rbl(@RBLS) { 
+        chomp($rbl);
+        print $rbl . "\n";
+    }
+    exit;
 }
 
 &help;
@@ -161,55 +156,92 @@ if ($listrbls) {
 exit;
 
 sub checkit() { 
-	$ENTEREDIP=$_[0];
+    $ENTEREDIP=shift;
     print "========================================================\n";
-	print "Checking IP $ENTEREDIP\n\n" unless($ENTEREDIP eq "");
-	my $NUMLISTED=0;
-	my $LOOKUPHOST;
+    print "Checking IP $ENTEREDIP\n\n" unless($ENTEREDIP eq "");
+    my $NUMLISTED=0;
+    my $LOOKUPHOST;
     my $IS_IP_VALID = is_ip($ENTEREDIP);
     if (!($IS_IP_VALID)) {
         print RED "FATAL - invalid entry \"$ENTEREDIP\"\n";
         exit;
     }
-	if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
-      # IPV6
-		my $EXPANDEDIP = new Net::IP ( $ENTEREDIP );
-		$LOOKUPHOST = join '.', reverse ( split '', $EXPANDEDIP->ip() );
-		$LOOKUPHOST =~ s/\.:\././g;
-	} 
-	elsif ( $ENTEREDIP =~ /\./ and $ENTEREDIP !~ /:/ ) {
-      # IPV4 
-		$LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
-	} 
-	foreach my $BLACKLIST (@RBLS) {
-		chomp($BLACKLIST);
-		print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
-		my $lookup = "$LOOKUPHOST.$BLACKLIST";
-		my $RESULT = gethostbyname ( $lookup );
-		if ( ! defined $RESULT ) { 
-			print GREEN "[OK]\n" unless($listedonly);
-		}
-		else { 
-            $RESULT = inet_ntoa ( $RESULT );
-            $TXT = qx[ dig $lookup TXT +short ];
+    if ( $ENTEREDIP =~ /:/ and $ENTEREDIP !~ /\./ ) {
+        # IPV6
+        my $EXPANDEDIP = new Net::IP ( $ENTEREDIP );
+        $LOOKUPHOST = join '.', reverse ( split '', $EXPANDEDIP->ip() );
+        $LOOKUPHOST =~ s/\.:\././g;
+    }
+    elsif ( $ENTEREDIP =~ /\./ and $ENTEREDIP !~ /:/ ) {
+        # IPV4 
+        $LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
+    }
+    my $NUMTIMEDOUT=0;
+    foreach my $BLACKLIST (@RBLS) {
+        chomp($BLACKLIST);
+        print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
+        my $lookup = "$LOOKUPHOST.$BLACKLIST";
+        my $RESULT;
+        eval {
+            local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
+            alarm 3;
+            $RESULT = gethostbyname( $lookup );
+            alarm 0;
+        };
+        if ( $@ ) {
+            print CYAN "[TIMED OUT]\n" unless($listedonly);
+            $NUMTIMEDOUT++;
+            next;
+        }
+        if ( ! defined $RESULT ) {
+            print GREEN "[OK]\n" unless($listedonly);
+            next;
+        }
+        my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
+        chomp($A);
+        if ( $A eq "127.255.255.254" ) {
+            print GREEN "[OK]\n" unless($listedonly);
+            next;
+        }
+#        else {
+            my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
+            chomp($A);
+            #print YELLOW . $BLACKLIST . WHITE . ": ";
+            print RED "[LISTED] ($A)\n";
+            my $TXT=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'TXT', '+short' );
             chomp($TXT);
-			if ($listedonly) { 
-				print YELLOW . $BLACKLIST . WHITE . ": ";
-				print RED "[LISTED] ($RESULT)\n";
-			}
-			else { 
-				print RED "[LISTED] ($RESULT)\n";
-			}
-            if ($TXT) { 
+            if ($TXT) {
                 print CYAN "Reason: $TXT\n";
             }
             push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
-			$NUMLISTED++;
-		}
-	}
+            $NUMLISTED++;
+#        }
 
-	print "\n";
-	print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+#        my $RESULT = gethostbyname ( $lookup );
+#        if ( ! defined $RESULT ) {
+#            print GREEN "[OK]\n" unless($listedonly);
+#        }
+#        else {
+#            $RESULT = inet_ntoa ( $RESULT );
+#            $TXT = qx[ dig $lookup TXT +short ];
+#            chomp($TXT);
+#            if ($listedonly) {
+#                print YELLOW . $BLACKLIST . WHITE . ": ";
+#                print RED "[LISTED] ($RESULT)\n";
+#            }
+#            else {
+#                print RED "[LISTED] ($RESULT)\n";
+#            }
+#            if ($TXT) {
+#                print CYAN "Reason: $TXT\n";
+#            }
+#            push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
+#            $NUMLISTED++;
+#        }
+    }
+
+    print "\n";
+    print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
    if ($NUMLISTED > 0 and $email) { 
       my $SENDMAIL = "/usr/sbin/sendmail";
       open(MAIL, "|$SENDMAIL -ti");
@@ -222,37 +254,20 @@ sub checkit() {
 }
 
 sub help { 
-	print "rblcheck\n";
-	print "   --mainip checks the main IP address.\n";
-	print "   --allips checks all IP addresses on the server.\n";
-	print "   --listips lists all IP addresses on the server.\n";
-	print "   --allrbls uses all known RBL's (takes longer). Default: list of more common RBL's\n";
-	print "   --listrbls lists all RBL's that can be checked.\n";
-	print "   --rbl [RBL NAME] check only the RBL selected. Can have multiple --rbl values.\n";
-	print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
-	print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server.\n";
-	print "   --email sends email to root user if an IP is listed.\n";
-	print "   --help (you're looking at it!)\n";
-#	exit;
+    print "rblcheck\n";
+    print "   --mainip checks the main IP address.\n";
+    print "   --allips checks all IP addresses on the server.\n";
+    print "   --listips lists all IP addresses on the server.\n";
+    print "   --allrbls uses all known RBL's (takes longer). Default: list of more common RBL's\n";
+    print "   --listrbls lists all RBL's that can be checked.\n";
+    print "   --rbl [RBL NAME] check only the RBL selected. Can have multiple --rbl values.\n";
+    print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
+    print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server.\n";
+    print "   --email sends email to root user if an IP is listed.\n";
+    print "   --help (you're looking at it!)\n";
 }
 
-#sub module_sanity_check {
-#   eval("use Net::IP;");
-#   if ($@) {
-#      print "Note: Perl Module Net::IP.pm not installed!\n";
-#      print "Installing now - Please stand by.\n";
-#      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Net::IP ];
-#   }
-#   eval("use Data::Validate::IP;");
-#   if ($@) {
-#      print "Note: Perl Module Data::Validate::IP.pm not installed!\n";
-#      print "Installing now - Please stand by.\n";
-#      my $cpaninst = qx[ /usr/local/cpanel/bin/cpanm --force Data::Validate::IP ];
-#   }
-#   return;
-#}
-
 sub check_for_nat() {
-	return if (!(-e("/var/cpanel/cpnat")));
-	return 1;
+    return if (!(-e("/var/cpanel/cpnat")));
+    return 1;
 }
