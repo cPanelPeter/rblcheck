@@ -13,6 +13,8 @@ use Cpanel::Config::LoadWwwAcctConf ();
 use Cpanel::SafeRun::Timed();
 use Data::Validate::IP;
 use Net::IP;
+use Time::Piece;
+use Time::Seconds;
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
@@ -32,7 +34,6 @@ my $ipaddr;
 my $ipalias;
 my @ALL;
 my $tocheck;
-my $TXT;
 my @rblnames;
 my $rbl;
 
@@ -114,14 +115,14 @@ if (@rblnames) {
 }
 
 if ($mainip) { 
-    &checkit($servers_mainip);
+    checkit($servers_mainip);
     exit;
 }
 
 if ($checkip) { 
     $tocheck=$checkip;
     chomp($tocheck);
-    &checkit($tocheck);
+    checkit($tocheck);
     exit;
 }
 
@@ -130,7 +131,7 @@ if ($allips) {
     push(@ALL,$servers_mainip);
     foreach $tocheck(@ALL) { 
         chomp($tocheck);
-        &checkit($tocheck);
+        checkit($tocheck);
     }
     exit;
 }
@@ -157,6 +158,8 @@ exit;
 
 sub checkit() { 
     $ENTEREDIP=shift;
+    my $start_time = Time::Piece->new;
+    print "Scan started on $start_time\n";
     print "========================================================\n";
     print "Checking IP $ENTEREDIP\n\n" unless($ENTEREDIP eq "");
     my $NUMLISTED=0;
@@ -197,60 +200,36 @@ sub checkit() {
             print GREEN "[OK]\n" unless($listedonly);
             next;
         }
-        my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
+        my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
         chomp($A);
         if ( $A eq "127.255.255.254" ) {
             print GREEN "[OK]\n" unless($listedonly);
             next;
         }
-#        else {
-            my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
-            chomp($A);
-            #print YELLOW . $BLACKLIST . WHITE . ": ";
-            print RED "[LISTED] ($A)\n";
-            my $TXT=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'TXT', '+short' );
-            chomp($TXT);
-            if ($TXT) {
-                print CYAN "Reason: $TXT\n";
-            }
-            push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
-            $NUMLISTED++;
-#        }
-
-#        my $RESULT = gethostbyname ( $lookup );
-#        if ( ! defined $RESULT ) {
-#            print GREEN "[OK]\n" unless($listedonly);
-#        }
-#        else {
-#            $RESULT = inet_ntoa ( $RESULT );
-#            $TXT = qx[ dig $lookup TXT +short ];
-#            chomp($TXT);
-#            if ($listedonly) {
-#                print YELLOW . $BLACKLIST . WHITE . ": ";
-#                print RED "[LISTED] ($RESULT)\n";
-#            }
-#            else {
-#                print RED "[LISTED] ($RESULT)\n";
-#            }
-#            if ($TXT) {
-#                print CYAN "Reason: $TXT\n";
-#            }
-#            push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
-#            $NUMLISTED++;
-#        }
+        my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
+        chomp($A);
+        print RED "[LISTED] ($A)\n";
+        push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
+        $NUMLISTED++;
     }
 
     print "\n";
     print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
-   if ($NUMLISTED > 0 and $email) { 
-      my $SENDMAIL = "/usr/sbin/sendmail";
-      open(MAIL, "|$SENDMAIL -ti");
-      print MAIL "To: root\n";
-      print MAIL "From: root\n";
-      print MAIL "Subject: rblcheck found $ENTEREDIP listed in $NUMLISTED RBL's\n\n";
-      print MAIL "@MAIL2ROOT";
-      close(MAIL);
-   }
+    my $end_time = Time::Piece->new;
+    print "Scan completed on $end_time\n";
+    my $scantimediff = ( $scanendtime - $scanstarttime );
+    my $scanTotTime  = $scantimediff->pretty;
+    $scanTotTime = $scanTotTime . "\n";
+    print "Elapsed Time: $scanTotTime\n";
+    if ($NUMLISTED > 0 and $email) { 
+        my $SENDMAIL = "/usr/sbin/sendmail";
+        open(MAIL, "|$SENDMAIL -ti");
+        print MAIL "To: root\n";
+        print MAIL "From: root\n";
+        print MAIL "Subject: rblcheck found $ENTEREDIP listed in $NUMLISTED RBL's\n\n";
+        print MAIL "@MAIL2ROOT";
+        close(MAIL);
+    }
 }
 
 sub help { 
