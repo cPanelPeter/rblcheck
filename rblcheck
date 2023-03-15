@@ -209,7 +209,8 @@ sub checkit() {
         my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
         chomp($A);
         print RED "[LISTED] ($A)\n";
-        push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
+        #push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
+        push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\n===========================\n");
         $NUMLISTED++;
     }
 
@@ -217,7 +218,7 @@ sub checkit() {
     print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
     my $end_time = Time::Piece->new;
     print "Scan completed on $end_time\n";
-    my $scantimediff = ( $scanendtime - $scanstarttime );
+    my $scantimediff = ( $end_time - $start_time );
     my $scanTotTime  = $scantimediff->pretty;
     $scanTotTime = $scanTotTime . "\n";
     print "Elapsed Time: $scanTotTime\n";
