@@ -2,7 +2,6 @@
 0spamurl.fusionzero.com
 88.blocklist.zap
 Spam-RBL.fr
-abuse.rfc-clueless.org
 access.redhawk.org
 admin.bl.kundenserver.de
 all.rbl.jp
@@ -33,12 +32,9 @@ blacklist.sci.kun.nl
 blacklist.sequoia.ops.asp.att.net
 blacklist.woody.ch
 block.dnsbl.sorbs.net
-bogusmx.rfc-clueless.org
 bsb.empty.us
 bsb.spamlookup.net
 cbl.abuseat.org
-cblless.anti-spam.org.cn
-cidr.bl.mcafee.com
 combined.rbl.msrbl.net
 db.wpbl.info
 dbl.tiopan.com
@@ -53,7 +49,6 @@ dnsbl.kempt.net
 dnsbl.madavi.de
 dnsbl.net.ua
 dnsbl.othello.ch
-dnsbl.rizon.net
 dnsbl.rv-soft.info
 dnsbl.rymsho.ru
 dnsbl.sorbs.net
@@ -69,15 +64,12 @@ dnsbl6.anticaptcha.net
 dnsrbl.org
 dnsrbl.swinog.ch
 dob.sibl.support-intelligence.net
-dsn.rfc-clueless.org
 dul.blackhole.cantv.net
 dul.dnsbl.borderware.com
 dul.dnsbl.sorbs.net
-dul.pacifier.net
 dyna.spamrats.com
 dyndns.rbl.jp
 dynip.rothen.com
-elitist.rfc-clueless.org
 escalations.dnsbl.sorbs.net
 ex.dnsbl.org
 feb.spamlab.com
@@ -86,10 +78,8 @@ forbidden.icm.edu.pl
 fresh.spameatingmonkey.net
 fresh10.spameatingmonkey.net
 fresh15.spameatingmonkey.net
-fulldom.rfc-clueless.org
 gl.suomispam.net
 hil.habeas.com
-hog.blackhole.cantv.net
 http.dnsbl.sorbs.net
 images.rbl.msrbl.net
 in.dnsbl.org
@@ -99,7 +89,6 @@ ipv6.blacklist.woody.ch
 ipv6.rbl.choon.net
 ix.dnsbl.manitu.net
 korea.services.net
-l1.apews.org
 l1.bbfh.ext.sorbs.net
 l2.bbfh.ext.sorbs.net
 l3.bbfh.ext.sorbs.net
@@ -118,7 +107,6 @@ old.spam.dnsbl.sorbs.net
 orvedb.aupads.org
 phishing.rbl.msrbl.net
 pofon.foobar.hu
-postmaster.rfc-clueless.org
 problems.dnsbl.sorbs.net
 proxies.dnsbl.sorbs.net
 psbl.surriel.com
@@ -143,12 +131,10 @@ recent.spam.dnsbl.sorbs.net
 relays.bl.kundenserver.de
 relays.dnsbl.sorbs.net
 relays.nether.net
-rhsbl.blackhole.cantv.net
 rhsbl.rymsho.ru
 rhsbl.scientificspam.net
 rhsbl.sorbs.net
 rhsbl.zapbl.net
-rot.blackhole.cantv.net
 rsbl.aupads.org
 safe.dnsbl.prs.proofpoint.com
 safe.dnsbl.sorbs.net
@@ -159,7 +145,6 @@ singlebl.spamgrouper.com
 singular.ttk.pte.hu
 smtp.dnsbl.sorbs.net
 socks.dnsbl.sorbs.net
-spam.blackhole.cantv.net
 spam.dnsbl.anonmails.de
 spam.dnsbl.sorbs.net
 spam.pedantic.org
@@ -190,13 +175,10 @@ virbl.dnsbl.bit.nl
 virus.rbl.jp
 virus.rbl.msrbl.net
 vote.drbl.caravan.ru
-vote.drbldf.dsbl.ru
 web.dnsbl.sorbs.net
 web.rbl.msrbl.net
-whois.rfc-clueless.org
 work.drbl.caravan.ru
 work.drbl.gremlin.ru
-work.drbldf.dsbl.ru
 wormrbl.imp.ch
 worms-bl.kundenserver.de
 z.mailspike.net

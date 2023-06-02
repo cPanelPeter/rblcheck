@@ -6,7 +6,7 @@
 #
 
 use strict;
-my $version = "2.0.13";
+my $version = "2.0.14";
 use Socket;
 use Getopt::Long;
 use Cpanel::Config::LoadWwwAcctConf ();
@@ -200,16 +200,19 @@ sub checkit() {
             print GREEN "[OK]\n" unless($listedonly);
             next;
         }
-        my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
+        #my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
+        my $A=Cpanel::SafeRun::Timed::timedsaferun( 0.25, 'dig', $lookup, 'A', '+short' );
         chomp($A);
         if ( $A eq "127.255.255.254" ) {
             print GREEN "[OK]\n" unless($listedonly);
             next;
         }
-        my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
-        chomp($A);
-        print RED "[LISTED] ($A)\n";
-        #push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\nReason: " . $TXT . "\n===========================\n");
+        if ( $listedonly ) {
+            print YELLOW . $BLACKLIST . WHITE . ": " . RED "[LISTED] ($A)\n";;
+        }
+        else {
+            print RED "[LISTED] ($A)\n";;
+        }
         push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\n===========================\n");
         $NUMLISTED++;
     }
