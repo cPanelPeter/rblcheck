@@ -6,21 +6,25 @@
 #
 
 use strict;
-my $version = "2.0.14";
+my $version = "2.0.15";
 use Socket;
 use Getopt::Long;
-use Cpanel::Config::LoadWwwAcctConf ();
+#use Cpanel::Config::LoadWwwAcctConf ();
 use Cpanel::SafeRun::Timed();
 use Data::Validate::IP;
 use Net::IP;
+use Net::DNS;
 use Time::Piece;
 use Time::Seconds;
+use Cpanel::JSON ();
+use JSON::MaybeXS qw(encode_json decode_json);
+use Text::Tabs;
+$tabstop = 4;
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 $| = 1;
 
 my $allrbls; 
-my $mainip;
 my $allips; 
 my $email; 
 my $checkip; 
@@ -28,57 +32,16 @@ my $listips;
 my $listrbls;
 my $listedonly;
 my $help;
-my $ENTEREDIP;
-my $ipaddrline;
-my $ipaddr;
-my $ipalias;
-my @ALL;
-my $tocheck;
 my @rblnames;
-my $rbl;
-
-# Check for NAT configuration
-my $HASNAT=0;
-$HASNAT=&check_for_nat();
 
 # Get servers_mainip from /etc/wwwacct.conf file.
-my $wwwacct = Cpanel::Config::LoadWwwAcctConf::loadwwwacctconf();
-my $servers_mainip = $wwwacct->{'ADDR'};
+my $servers_mainip = get_mainip();
 my $cpnatline;
 my $PrivateIP;
 my $PublicIP;
-my @IPALIASES;
 my @MAIL2ROOT;
 
-if ($HASNAT) { 
-    open(CPNAT,"/var/cpanel/cpnat");
-    my @CPNATDATA=<CPNAT>;
-    close(CPNAT);
-    foreach $cpnatline(@CPNATDATA) { 
-        chomp($cpnatline);
-        ($PrivateIP,$PublicIP)=(split(/\s+/,$cpnatline));
-        if ($PrivateIP eq $servers_mainip) { 
-            chomp($PrivateIP);
-            chomp($PublicIP);
-            $servers_mainip=$PublicIP;
-            next;
-        }
-        push(@IPALIASES,$PublicIP);
-    }
-}
-else {
-   open(IPS,"/etc/ips");
-   my @EXTRAIPS=<IPS>;
-   close(IPS);
-   my $extraIP;
-   foreach $extraIP (@EXTRAIPS) {
-      ($PublicIP)=(split(/:/,$extraIP))[0];
-      push(@IPALIASES,$PublicIP);
-   }
-}
-
 GetOptions(
-    'mainip' => \$mainip,
     'allips' => \$allips,
     'listips' => \$listips,
     'listrbls' => \$listrbls,
@@ -114,50 +77,53 @@ if (@rblnames) {
     $totrbls=@RBLS;
 }
 
-if ($mainip) { 
-    checkit($servers_mainip);
-    exit;
-}
 
 if ($checkip) { 
-    $tocheck=$checkip;
+    my $tocheck=$checkip;
     chomp($tocheck);
     checkit($tocheck);
     exit;
 }
 
 if ($allips) { 
-    @ALL=@IPALIASES;
-    push(@ALL,$servers_mainip);
-    foreach $tocheck(@ALL) { 
-        chomp($tocheck);
-        checkit($tocheck);
+    my $getallipsJSON = get_whmapi1( 'listips' );
+    for my $getallips ( @{ $getallipsJSON->{data}->{ip} } ) {
+        checkit($getallips->{public_ip});
     }
     exit;
 }
 
-if ($listips) { 
-    print "Main IP: $servers_mainip\n";
-    foreach $ipalias(@IPALIASES) { 
-        print "IP Alias: $ipalias\n";
+if ($listips) {
+    my $getallipsJSON = get_whmapi1( 'listips' );
+    for my $getallips ( @{ $getallipsJSON->{data}->{ip} } ) {
+        if ( $getallips->{mainaddr} ) {
+            print "Main IP: $getallips->{public_ip}\n";
+        }
+        else {
+            print "IP Alias: $getallips->{public_ip}\n";
+        }
     }
     exit;
 }
 
 if ($listrbls) { 
-    foreach $rbl(@RBLS) { 
+    foreach my $rbl(@RBLS) { 
         chomp($rbl);
         print $rbl . "\n";
     }
     exit;
 }
 
-&help;
+if ( $help ) {
+    help();
+    exit;
+}
 
+checkit($servers_mainip);
 exit;
 
 sub checkit() { 
-    $ENTEREDIP=shift;
+    my $ENTEREDIP=shift;
     my $start_time = Time::Piece->new;
     print "Scan started on $start_time\n";
     print "========================================================\n";
@@ -180,45 +146,36 @@ sub checkit() {
         $LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
     }
     my $NUMTIMEDOUT=0;
-    foreach my $BLACKLIST (@RBLS) {
-        chomp($BLACKLIST);
-        print YELLOW . $BLACKLIST . WHITE . ": " unless($listedonly);
-        my $lookup = "$LOOKUPHOST.$BLACKLIST";
-        my $RESULT;
-        eval {
-            local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
-            alarm 3;
-            $RESULT = gethostbyname( $lookup );
-            alarm 0;
-        };
-        if ( $@ ) {
-            print CYAN "[TIMED OUT]\n" unless($listedonly);
-            $NUMTIMEDOUT++;
-            next;
+    foreach my $rbl(@RBLS) {
+        chomp( $rbl );
+        my $lookup = $LOOKUPHOST . "." . $rbl;
+        my $res = Net::DNS::Resolver->new;
+        # If you want to add a timeout check, you can uncomment the two lines below, but I have found that it still moves pretty quickly
+        # without these!
+        #$res->udp_timeout(10);
+        #$res->tcp_timeout(20);
+        my $reply = $res->search( $lookup, "A");
+        print WHITE $rbl . ": " . GREEN "[OK]\n" unless( $listedonly );
+        next unless( $reply );
+        foreach my $rr ($reply->answer) {
+            chomp($rr);
+            next unless( $rr->type eq "A" );
+            if ( $rr->address =~ m{127.255.255.254} ) {
+                print WHITE $rbl . ": " . GREEN "[OK]\n" unless( $listedonly );
+                next;
+            }
+            print WHITE $rbl . ": " . RED "[LISTED] " . " " . $rr->address, "\n";
+            my $txtreply = Cpanel::SafeRun::Timed::timedsaferun( 4, 'dig', '+short', 'TXT', $lookup );
+            chomp($txtreply);
+            print MAGENTA expand( "\t\\_Reason: " . $txtreply . "\n" ) unless( $txtreply eq "" );
+            push(@MAIL2ROOT, $rbl . "- LISTED (" . $rr->address . ")\n===========================\n");
+            $NUMLISTED++;
         }
-        if ( ! defined $RESULT ) {
-            print GREEN "[OK]\n" unless($listedonly);
-            next;
-        }
-        #my $A=Cpanel::SafeRun::Timed::timedsaferun( 1, 'dig', $lookup, 'A', '+short' );
-        my $A=Cpanel::SafeRun::Timed::timedsaferun( 0.25, 'dig', $lookup, 'A', '+short' );
-        chomp($A);
-        if ( $A eq "127.255.255.254" ) {
-            print GREEN "[OK]\n" unless($listedonly);
-            next;
-        }
-        if ( $listedonly ) {
-            print YELLOW . $BLACKLIST . WHITE . ": " . RED "[LISTED] ($A)\n";;
-        }
-        else {
-            print RED "[LISTED] ($A)\n";;
-        }
-        push(@MAIL2ROOT, $BLACKLIST . "- LISTED (" . $RESULT . ")\n===========================\n");
-        $NUMLISTED++;
     }
 
     print "\n";
     print "Checked $totrbls Realtime Blackhole Lists (RBL's) & found $ENTEREDIP listed in $NUMLISTED of them.\n";
+    print $NUMTIMEDOUT . " RBL's timed out within 1 to 2 seconds.\n" if ( $NUMTIMEDOUT > 0 );
     my $end_time = Time::Piece->new;
     print "Scan completed on $end_time\n";
     my $scantimediff = ( $end_time - $start_time );
@@ -238,11 +195,10 @@ sub checkit() {
 
 sub help { 
     print "rblcheck\n";
-    print "   --mainip checks the main IP address.\n";
     print "   --allips checks all IP addresses on the server.\n";
     print "   --listips lists all IP addresses on the server.\n";
     print "   --allrbls uses all known RBL's (takes longer). Default: list of more common RBL's\n";
-    print "   --listrbls lists all RBL's that can be checked.\n";
+    print "   --listrbls lists the shortlist of rbls. Pass --allrbls to also list all RBL's that can be checked.\n";
     print "   --rbl [RBL NAME] check only the RBL selected. Can have multiple --rbl values.\n";
     print "   --listedonly only displays information if an IP address is listed in an RBL.\n";
     print "   --checkip [IP ADDRESS] - checks an IP address not associated with this server.\n";
@@ -251,6 +207,26 @@ sub help {
 }
 
 sub check_for_nat() {
-    return if (!(-e("/var/cpanel/cpnat")));
-    return 1;
+    return 1 if (-e("/var/cpanel/cpnat"));
+    return 0;
 }
+
+sub get_json_from_command {
+    my @cmd = @_;
+    return Cpanel::JSON::Load(
+        Cpanel::SafeRun::Timed::timedsaferun( 30, @cmd ) );
+}
+
+sub get_whmapi1 {
+    return get_json_from_command( 'whmapi1', '--output=json', @_ );
+}
+
+sub get_mainip {
+    my $getallipsJSON = get_whmapi1( 'listips' );
+    for my $getallips ( @{ $getallipsJSON->{data}->{ip} } ) {
+        if ( $getallips->{mainaddr} ) {
+            return $getallips->{public_ip};
+        }
+    }
+}
+
