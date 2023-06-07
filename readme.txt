@@ -19,7 +19,6 @@ Call it with the following options:
 
 -bash-4.1# ./rblcheck 
 rblcheck
-   --mainip checks the main IP address.
    --allips checks all IP addresses on the server.
    --listips lists all IP addresses on the server.
    --listrbls lists all RBL's that can be checked.
@@ -31,29 +30,29 @@ rblcheck
 
 So to check the servers main IP address to see if it's listed on any RBL's you might enter: 
 
--bash-4.1# ./rblcheck --mainip --listedonly
-Checking IP 208.74.121.106
+-bash-4.1# ./rblcheck --listedonly
+Checking IP 208.xx.xxx.xx
 
 cbl.abuseat.org: [LISTED] (127.0.0.2)
-Reason: "Blocked - see http://www.abuseat.org/lookup.cgi?ip=208.74.121.106"
+    \_ Reason: "Blocked - see http://www.abuseat.org/lookup.cgi?ip=208.xx.xxx.xx"
 cidr.bl.mcafee.com: [LISTED] (127.0.0.4)
-Reason: "https://www.spamhaus.org/query/ip/208.74.121.106"
+    \_ Reason: "https://www.spamhaus.org/query/ip/208.xx.xxx.xx"
 rbl.rbldns.ru: [LISTED] (127.0.0.2)
-Reason: "RBLDNS Server v1.0. Author VDV [ Site: WWW.RBLDNS.RU ]"
+    \_ Reason: "RBLDNS Server v1.0. Author VDV [ Site: WWW.RBLDNS.RU ]"
 zz.countries.nerd.dk: [LISTED] (127.0.3.72)
-Reason: "us"
+    \_ Reason: "us"
 
-Checked 248 Realtime Blackhole Lists (RBL's) & found 208.74.121.106 listed in 4 of them.
+Checked 248 Realtime Blackhole Lists (RBL's) & found 208.xx.xxx.xx listed in 4 of them.
 
 
 You can also set up a daily or weekly cron job.
 
-0 23 * * * /root/rblcheck --listedonly --mail --mainip
+0 23 * * * /root/rblcheck --listedonly --mail 
 
 Example of passing an RBL to check using the --rbl option: 
 
 
--bash-4.1# ./rblcheck --mainip --listedonly --rbl zen.spamhaus.org --rbl bl.spamcop.net
+-bash-4.1# ./rblcheck --listedonly --rbl zen.spamhaus.org --rbl bl.spamcop.net
 
 This would only check the 2 RBL's passed on the command line to see if the servers main IP 
 address is listed.  
