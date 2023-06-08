@@ -155,7 +155,12 @@ sub checkit() {
         #$res->udp_timeout(10);
         #$res->tcp_timeout(20);
         my $reply = $res->search( $lookup, "A");
-        print WHITE $rbl . ": " . GREEN "[OK]\n" unless( $listedonly );
+        if ( ! $listedonly ) {
+            if ( ! $reply ) {
+                print WHITE $rbl . ": " . GREEN "[OK]\n";
+                next;
+            }
+        }
         next unless( $reply );
         foreach my $rr ($reply->answer) {
             chomp($rr);
@@ -164,12 +169,15 @@ sub checkit() {
                 print WHITE $rbl . ": " . GREEN "[OK]\n" unless( $listedonly );
                 next;
             }
-            print WHITE $rbl . ": " . RED "[LISTED] " . " " . $rr->address, "\n";
-            my $txtreply = Cpanel::SafeRun::Timed::timedsaferun( 4, 'dig', '+short', 'TXT', $lookup );
-            chomp($txtreply);
-            print MAGENTA expand( "\t\\_Reason: " . $txtreply . "\n" ) unless( $txtreply eq "" );
-            push(@MAIL2ROOT, $rbl . "- LISTED (" . $rr->address . ")\n===========================\n");
-            $NUMLISTED++;
+            if ( $rr->address ) {
+                print WHITE $rbl . ": " . RED "[LISTED] " . " " . $rr->address, "\n";
+                my $txtreply = Cpanel::SafeRun::Timed::timedsaferun( 4, 'dig', '+short', 'TXT', $lookup );
+                chomp($txtreply);
+                print MAGENTA expand( "\t\\_Reason: " . $txtreply . "\n" ) unless( $txtreply eq "" );
+                push(@MAIL2ROOT, $rbl . "- LISTED (" . $rr->address . ")\n===========================\n");
+                $NUMLISTED++;
+                next;
+            }
         }
     }
 

@@ -80,6 +80,7 @@ fresh15.spameatingmonkey.net
 gl.suomispam.net
 hil.habeas.com
 http.dnsbl.sorbs.net
+hostkarma.junkemailfilter.com
 images.rbl.msrbl.net
 in.dnsbl.org
 ipbl.zeustracker.abuse.ch
