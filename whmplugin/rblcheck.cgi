@@ -16,10 +16,12 @@ use Net::IP;
 use Time::Piece;
 use Time::Seconds;
 use Data::Validate::IP qw(is_ip);
-use Socket;
-use Cpanel::Config::LoadWwwAcctConf ();
+#use Socket;
+#use Cpanel::Config::LoadWwwAcctConf ();
 use Cpanel::SafeRun::Timed          ();
 use constant { PLUGIN_PATH => '/cgi/rblcheck' };
+use Text::Tabs;
+$tabstop = 4;
 use Term::ANSIColor qw(:constants);
 $Term::ANSIColor::AUTORESET = 1;
 use CGI qw(:standard);
@@ -47,7 +49,7 @@ Cpanel::Template::process_template('whostmgr', {
     },
 });
 
-my $version = "1.0.16";
+my $version = "2.0";
 my $RBLS = Cpanel::SafeRun::Timed::timedsaferun( 6, 'curl', '-s', 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rbllist.txt' );
 my @RBLS = split /\n/, $RBLS;
 my $SHORTRBLS = Cpanel::SafeRun::Timed::timedsaferun( 6, 'curl', '-s', 'https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/shortlist.txt' );
@@ -56,18 +58,12 @@ my $totrbls;
 my $ENTEREDIP;
 my $TXT;
 my $NUMLISTED=0;
-my $NUMTIMEDOUT=0;
 my $LOOKUPHOST;
 
 # Get servers_mainip for /etc/wwwacct.conf file.
-my $wwwacct = Cpanel::Config::LoadWwwAcctConf::loadwwwacctconf();
-my $servers_mainip = $wwwacct->{'ADDR'};
-my $cpnatline;
-my $PrivateIP;
-my $PublicIP;
-my @IPALIASES;
+#my $wwwacct = Cpanel::Config::LoadWwwAcctConf::loadwwwacctconf();
+my $servers_mainip = get_mainip();
 my @server_ips;
-my $IPALIAS;
 
 my $ListIPsJSON = get_whmapi1('listips');
 my $main_ip_address;
@@ -109,7 +105,9 @@ if ($enteredipaddr) {
 
     if ($NUMLISTED == 0) { 
         print "<p>Congratulations! - $ENTEREDIP is not currently listed in the $totselected RBL's checked!\n";
-        print "<p><a href=\"rblcheck.cgi\">Return</a>\n";
+		print "<form action=\"rblcheck.cgi\">\n";
+		print "<button type=\"submit\" value=\"RETURN\">RETURN</button>\n";
+		print "</form>\n";
     }
     else { 
         print <<END;
@@ -119,7 +117,9 @@ Don't just request to have your IP delisted without fixing the problem.  If you 
 <p>
 Follow the steps outlined in the RBL removal process. Once you have solved the problem that got you listed, go back and attempt removal. Many of them have a self-service removal process.  Most of these RBL providers are professional and their goal is to have a cleaner, faster and better Internet experience for everyone. 
 <P>
-<a href="rblcheck.cgi">Return</a>
+<form action="rblcheck.cgi">
+<button type="submit" value="RETURN">RETURN</button>
+</form>
 
 </body>
 </html>
@@ -314,12 +314,13 @@ END
     <p>
     &nbsp;
     <div>
-    <input type="checkbox" name="onlylisted" value="1" > Show only when listed in an RBL<p>
+    <input type="checkbox" name="onlylisted" value="1" checked > Show only when listed in an RBL<p>
     </div>
     <div>
 END
     if ($aliascnt > 0) { 
         print "<p>Here are the $aliascnt IP's on this server: <p>\n";
+        print "<p>Double-click on the IP address to check and press the CHECK button.<p>\n";
         print "<SELECT name=\"selectedIP\" id=\"selectedIP\" size=10 style=\"width:200px;\" ondblclick=\"showSelected()\">";
         foreach my $ip (@server_ips) {
             chomp($ip);
@@ -364,40 +365,74 @@ sub checkit {
     elsif ( $ENTEREDIP =~ /\./ and $ENTEREDIP !~ /:/ ) {
         $LOOKUPHOST = join '.', reverse ( split /\./, $ENTEREDIP );
     }
+
+    print <<HTML;
+    <style>
+        #textarea_id {
+			background-color: black;
+            text-align:justify;
+        }
+		textarea {
+			resize: none;
+			outline: none;
+		}
+    </style>
+
+    <textarea rows=15 cols=150 autofocus disabled id="textarea_id">
+HTML
+
     foreach my $BLACKLIST (@SelectedRBLs) {
         chomp($BLACKLIST);
-        print $BLACKLIST . ": " unless( $LISTEDONLY );
         my $lookup = "$LOOKUPHOST.$BLACKLIST";
-        my $RESULT;
-        eval {
-            local $SIG{ALRM} = sub { die "alarm\n" }; # NB: \n required
-            alarm 3;
-            $RESULT = gethostbyname( $lookup );
-            alarm 0;
-        };
-
-        if ( $@ ) {
-            print "<font color=\"CYAN\">[TIMED OUT]</font><BR>\n";
-                $NUMTIMEDOUT++;
-            next;
+		my $res = Net::DNS::Resolver->new;
+        my $reply = $res->search( $lookup, "A");
+        if ( ! $LISTEDONLY ) {
+            if ( ! $reply ) {
+        		print $BLACKLIST . ": " unless( $LISTEDONLY );
+				print "[OK]\n";
+            	next;
+            }
         }
-        if ( ! defined $RESULT ) {
-            print "<font color=\"GREEN\">[OK]</font><BR>\n" unless( $LISTEDONLY );
-        }
-        else {
-            my $A=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'A', '+short' );
-            print "<font color=\"RED\">[ LISTED - RESULT: $A ]</font>\n";
-            my $TXT=Cpanel::SafeRun::Timed::timedsaferun( 3, 'dig', $lookup, 'TXT', '+short' );
-            print "<font color=\"BLUE\"> - Additional Information: <font color=\"YELLOW\">$TXT</font><br>\n" if ( $TXT );
-            $NUMLISTED++;
+        next unless( $reply );
+        foreach my $rr ($reply->answer) {
+            chomp($rr);
+            next unless( $rr->type eq "A" );
+            if ( $rr->address =~ m{127.255.255.254} ) {
+        		print $BLACKLIST . ": " unless( $LISTEDONLY );
+				print "[OK]\n" unless( $LISTEDONLY );
+                next;
+            }
+            if ( $rr->address ) {
+        		print $BLACKLIST . ": ";
+				print "[ LISTED ] " . $rr->address . "\n";
+                my $txtreply = Cpanel::SafeRun::Timed::timedsaferun( 4, 'dig', '+short', 'TXT', $lookup );
+                chomp($txtreply);
+                print expand( "\t\\_Reason: " . $txtreply . "\n" ) unless( $txtreply eq "" );
+                $NUMLISTED++;
+                next;
+            }
         }
     }
-    $totrbls=@SelectedRBLSs;
+    print "</textarea>\n";
+	print <<HTML;
+	<p>
+	<button onclick = "scrollBar()">
+         Jump To Bottom
+      </button>
+	       <script>
+         //function to set textarea scroll bar to bottom as a default using JavaScript
+         function scrollBar() {
+            var content = document.getElementById('textarea_id');
+            content.scrollTop = content.scrollHeight;
+         }
+      </script>
+HTML
+    $totrbls=@SelectedRBLs;
     print "<p>\n";
     print "<hr>\n";
+    print "<p>\n";
     print "Checked $totrbls Realtime Blackhole Lists (RBL's).<BR>\n";
-    print "$ENTEREDIP is listed in $NUMLISTED Real-Time Blackhole Lists<br>\n";
-    print "$NUMTIMEDOUT Real-Time Blackhole Lists timed out.<br>\n";
+    print "The IP: $ENTEREDIP was found to be listed in $NUMLISTED of them.<br>\n";
 }
 
 sub get_json_from_command {
@@ -408,4 +443,13 @@ sub get_json_from_command {
 
 sub get_whmapi1 {
     return get_json_from_command( 'whmapi1', '--output=json', @_ );
+}
+
+sub get_mainip {
+    my $getallipsJSON = get_whmapi1( 'listips' );
+    for my $getallips ( @{ $getallipsJSON->{data}->{ip} } ) {
+        if ( $getallips->{mainaddr} ) {
+            return $getallips->{public_ip};
+        }
+    }
 }
