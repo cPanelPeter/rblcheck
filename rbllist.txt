@@ -99,6 +99,7 @@ misc.dnsbl.sorbs.net
 multi.surbl.org
 netbl.spameatingmonkey.net
 new.spam.dnsbl.sorbs.net
+netblockbl.spamgrouper.to
 no-more-funn.moensted.dk
 nomail.rhsbl.sorbs.net
 noptr.spamrats.com
@@ -140,7 +141,6 @@ safe.dnsbl.sorbs.net
 sbl.nszones.com
 schizo-bl.kundenserver.de
 short.rbl.jp
-singlebl.spamgrouper.com
 singular.ttk.pte.hu
 smtp.dnsbl.sorbs.net
 socks.dnsbl.sorbs.net
