@@ -15,7 +15,6 @@ dnsbl-2.uceprotect.net
 dnsbl-3.uceprotect.net
 dnsbl.dronebl.org
 dnsbl.inps.de
-dnsbl.sorbs.net
 dyna.spamrats.com
 hostkarma.junkemailfilter.com
 ix.dnsbl.manitu.net
@@ -27,7 +26,6 @@ noptr.spamrats.com
 rbl.abuse.ro
 rbl.interserver.net
 spam.abuse.ch
-spam.dnsbl.sorbs.net
 spam.spamrats.com
 url.0spam.org
 virbl.dnsbl.bit.nl
