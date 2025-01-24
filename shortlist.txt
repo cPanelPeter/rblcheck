@@ -29,4 +29,3 @@ spam.abuse.ch
 spam.spamrats.com
 url.0spam.org
 virbl.dnsbl.bit.nl
-zen.spamhaus.org
