@@ -43,7 +43,6 @@ dnsbl.cobion.com
 dnsbl.dronebl.org
 dnsbl.justspam.org
 dnsbl.kempt.net
-dnsbl.madavi.de
 dnsbl.net.ua
 dnsbl.othello.ch
 dnsbl.rv-soft.info
