@@ -5,13 +5,13 @@ A WHM plugin was also created with this code to be used in a walkthrough.
 
 https://forums.cpanel.net/threads/how-to-create-a-plugin-whm-cpanel.516681/
 
-How to use this from the command line: 
+How to use this from the command line:
 
-Either download the code from github.com: 
+Either download the code from github.com:
 
 # curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rblcheck > /root/rblcheck
 
-or set up an alias: 
+or set up an alias:
 
 alias rblcheck="/usr/bin/perl <(curl -s https://raw.githubusercontent.com/cPanelPeter/rblcheck/master/rblcheck)"
 
